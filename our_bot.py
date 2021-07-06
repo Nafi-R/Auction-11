@@ -5,6 +5,7 @@ class CompetitorInstance():
         self.trueValue = -1
         self.should_bid = True
         self.our_lastBid = 0
+        self.penalty = 0
         pass
     
     def onGameStart(self, engine, gameParameters):
