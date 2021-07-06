@@ -5,7 +5,11 @@ class CompetitorInstance():
         self.trueValue = -1
         self.should_bid = True
         self.our_lastBid = 0
+<<<<<<< HEAD
         self.test2 = "This is a test"
+=======
+        self.penalty = 100
+>>>>>>> origin/jbranch
         pass
     
     def onGameStart(self, engine, gameParameters):
