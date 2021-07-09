@@ -10,7 +10,8 @@ class CompetitorInstance():
         self.has_made_first_bid = [] 
         self.ourbots = []
         self.competitor_bots = []
-        pass
+        self.all_bots = []
+        #pass
 
     def onGameStart(self, engine, gameParameters):
         # engine: an instance of the game engine with functions as outlined in the documentation.
@@ -18,6 +19,7 @@ class CompetitorInstance():
         # gameParameters: A dictionary containing a variety of game parameters
         self.gameParameters = gameParameters
         self.minbid = gameParameters["minimumBid"]
+
         self.engine.print("Game Started!")
 
     
@@ -26,8 +28,17 @@ class CompetitorInstance():
         # trueValue is -1 if this bot doesn't know the true value 
         # if we know the true value, let others bid.
         # If within certain range, allow us to buy
+        
         self.trueValue = trueValue
+        self.index = index
         self.engine.print("Auction Started!")
+
+        self.engine.print(f"This bot is at position {self.index}")
+        
+        if self.trueValue == -1:
+            self.engine.print(f"This bot doesn't know the true value [{self.trueValue}]")
+        else:
+            self.engine.print(f"This bot knows the true value is {self.trueValue}")
 
 
     def onBidMade(self, whoMadeBid, howMuch):
@@ -40,26 +51,31 @@ class CompetitorInstance():
         # if not NPC bot, add to competitor list
         # identify who didn't make a bid 
 
-        if whoMadeBid not in self.has_made_first_bid:
-            temp = self.prevBid
-            if howMuch == self.math_func(temp):
-                self.ourbots.append(whoMadeBid)
-                self.engine.print(f"Our bots are {self.ourbots}")
-            else:
-                self.competitor_bots.append(whoMadeBid)
-                self.engine.print(f"Our competitors bots are {self.competitor_bots}")
+        if whoMadeBid != self.index:
+            self.competitor_bots.append(whoMadeBid)
+            self.engine.print(f"Our competitors bots are {self.competitor_bots}")
+
+        # if whoMadeBid not in self.has_made_first_bid:
+        #     temp = self.prevBid
+        #     if howMuch == self.math_func(temp):
+        #         self.ourbots.append(whoMadeBid)
+        #         self.engine.print(f"Our bots are {self.ourbots}")
+        #     else:
+        #         self.competitor_bots.append(whoMadeBid)
+        #         self.engine.print(f"Our competitors bots are {self.competitor_bots}")
             
-            self.has_made_first_bid.append(whoMadeBid)
-        
-        self.engine.print(f"Someone at position [{whoMadeBid}] made a bid for (${howMuch})")
-        pass
+        #     self.prevBid = howMuch
+        #     self.has_made_first_bid.append(whoMadeBid)
+                  
+        #     self.engine.print(f"Someone at position [{whoMadeBid}] made a bid for (${howMuch})")
+        # pass
     
 
     def math_func(self,lastBid) -> int:
         last_digit = (lastBid+8)%10
         power_digit = last_digit^2
-        self.prevBid = (lastBid+8) + power_digit
-        return self.prevBid
+        bid = (lastBid+8) + power_digit
+        return bid
         
         #lastbid = 2000
         # minbid = 2000 + 8 = 2008
@@ -73,10 +89,15 @@ class CompetitorInstance():
         mean = self.gameParameters["meanTrueValue"]
         stdv = self.gameParameters["stddevTrueValue"]
 
+        #our_bid = lastBid + self.minbid + 1
+
         #run only on first bid to identify bots
-        if self.hasBid == False:
-            self.engine.makeBid(math_func(lastBid))
-        
+        # if self.hasBid == False:
+        #     self.our_lastBid = self.math_func(lastBid)
+        #     self.engine.makeBid(self.our_lastBid)
+        #     self.hasBid = True
+        # else:
+        #     pass        
 
         #our_bid = lastBid + self.minbid + 1
         

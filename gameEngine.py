@@ -334,14 +334,16 @@ class NPCRandomBot():
         pass
 
     def onMyTurn(self, lastBid):
-        pr=32/50
-        if lastBid>self.mean/4:
-            pr=16/100
-        if lastBid>self.mean*3/4:
-            pr=2/50
-        if random.random() < pr:
+        pr=32/50 #0.64
+        if lastBid>self.mean/4: #2000 mean=2500 mean/4 = $625
+            pr=16/100 #0.16
+        if lastBid>self.mean*3/4: #$2000 mean=2500 mean = $1875
+            pr=2/50 #0.04 (x4 = 0.16)
+        if random.random() < pr: #if (0to1) < 0.64, 0.16, 0.04
             self.engine.makeBid(math.floor(
                 lastBid+(self.minp*(1+2*random.random()))))
-
+                #lastBid + 8x(1+2x(0-1))
+                #min value = lastBid + 8
+                #max value = lastBid + 24
     def onAuctionEnd(self):
         pass
