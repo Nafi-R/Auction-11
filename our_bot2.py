@@ -11,8 +11,13 @@ class CompetitorInstance():
         self.prevBid = 0
         self.hasBid = False 
         self.has_made_first_bid = [] 
+<<<<<<< HEAD
         self.ourbots = set()
         self.KnowsValue = set()
+=======
+        self.ourbots = []
+        self.ourbotsKnown = []
+>>>>>>> 9f856b763143b89be7751bb48ba9aabf1932947a
         self.competitor_bots = []
         #pass
 
@@ -24,7 +29,11 @@ class CompetitorInstance():
         self.minbid = gameParameters["minimumBid"]
         self.mean = self.gameParameters["meanTrueValue"]
         self.stdv = self.gameParameters["stddevTrueValue"]
+<<<<<<< HEAD
         self.numPlayers = self.gameParameters["numPlayers"]
+=======
+
+>>>>>>> 9f856b763143b89be7751bb48ba9aabf1932947a
         self.engine.print("Game Started!")
 
     
@@ -42,6 +51,7 @@ class CompetitorInstance():
         self.engine.print(f"This bot is at position {self.index}")
 
         if self.trueValue == -1:
+<<<<<<< HEAD
             self.engine.print(f"This bot doesn't know the true value [{self.trueValue},position: {self.index}]")
             #self.ourbots.add(self.index)
         else:
@@ -51,6 +61,11 @@ class CompetitorInstance():
         #self.engine.print(f"Our bots that don't know the true value {self.ourbots}")
         #self.engine.print(f"Our bots that knows the true value {self.KnowsValue}")
 
+=======
+            self.engine.print(f"This bot doesn't know the true value [{self.trueValue}]")
+        else:
+            self.engine.print(f"This bot knows the true value is {self.trueValue}")
+>>>>>>> 9f856b763143b89be7751bb48ba9aabf1932947a
 
     def onBidMade(self, whoMadeBid, howMuch):
         # whoMadeBid is the index of the player that made the bid
@@ -63,25 +78,42 @@ class CompetitorInstance():
         # if not NPC bot, add to competitor list
         # identify who didn't make a bid 
 
+<<<<<<< HEAD
         #identify competitor bots if not NPC bots:
         if whoMadeBid not in self.competitor_bots:
             if self.NPC_detector(howMuch, whoMadeBid) == False:
                 if whoMadeBid != self.index:
                     self.competitor_bots.append(whoMadeBid)
             
+=======
+        #identify competitor or NPC bots:
+        if whoMadeBid not in self.competitor_bots:
+            if whoMadeBid != self.index:
+                self.competitor_bots.append(whoMadeBid)      
+        
+        self.engine.print(f"Our competitors bots are {self.competitor_bots}")
+>>>>>>> 9f856b763143b89be7751bb48ba9aabf1932947a
 
         # self.engine.print(f"Our bots are {self.ourbots}")
         # self.engine.print(f"Our bots know true value: {self.ourbotsKnown}")
 
+<<<<<<< HEAD
         
 
     def NPC_detector(self,lastBid,whoMadeBid) -> bool:
+=======
+        self.NPC_detector(howMuch)
+
+    def NPC_detector(self, lastBid):
+
+>>>>>>> 9f856b763143b89be7751bb48ba9aabf1932947a
         pr=32/50 #0.64
         if lastBid>self.mean/4: #example: lastbid = $2000 mean=2500 mean/4 = $625
             pr=16/100 #0.16
         if lastBid>self.mean*3/4: #lastbid=$2000 mean=2500 mean = $1875
             pr=2/50 #0.04 (x4 = 0.16)
         if random.random() < pr: #if range(0-1) < 0.64/ 0.16/ 0.04
+<<<<<<< HEAD
             self.engine.print(f"NPC detected: Position:[{whoMadeBid}] Bid: [${lastBid}]")
             # self.engine.makeBid(math.floor(
             #     lastBid+(self.minp*(1+2*random.random()))))
@@ -90,6 +122,16 @@ class CompetitorInstance():
                 #min value = lastBid + 8
                 #max value = lastBid + 24
         return False
+=======
+            self.engine.print(f"NPC detected: Position:[{self.whoMadeBid}] Bid: [${self.howMuch}]")
+            # self.engine.makeBid(math.floor(
+            #     lastBid+(self.minp*(1+2*random.random()))))
+              
+                #lastBid + 8x(1+2x(0-1))
+                #min value = lastBid + 8
+                #max value = lastBid + 24
+
+>>>>>>> 9f856b763143b89be7751bb48ba9aabf1932947a
 
     # def math_func(self,lastBid) -> int:
     #     last_digit = (lastBid+8)%10
@@ -145,15 +187,24 @@ class CompetitorInstance():
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
         
+<<<<<<< HEAD
         #self.engine.reportTeams(self.ourbots,self.competitor_bots)
         
         #reportOwnTeam, reportNNPC, reportKnown
 
+=======
+        # report = self.engine.reportTeams(self.ourbots,self.competitor_bots,self.ourbotsKnown)
+        
+>>>>>>> 9f856b763143b89be7751bb48ba9aabf1932947a
         # self.engine.print(f"our bots {self.ourbots}")
         # self.engine.print(f"our competitors {self.competitor_bots}")
         # self.engine.print(f"our bots known {self.ourbotsKnown}")
 
         # self.engine.print(report)
+<<<<<<< HEAD
         self.engine.print(f"Our competitors bots are {self.competitor_bots}")
+=======
+
+>>>>>>> 9f856b763143b89be7751bb48ba9aabf1932947a
         self.engine.print(f"Auction Ended")
         pass
