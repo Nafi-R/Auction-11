@@ -29,11 +29,17 @@ class CompetitorInstance():
         self.trueValue = trueValue
         self.our_bots = []
         self.competitor_bots = []
+        self.has_made_first_bid = []
+        self.our_lastBid = 0
+        self.prevBid = 0
+        self.should_bid = True
+        self.hasBid = False 
+        self.has_made_first_bid = [] 
+
 
 
     def is_NPC(self, currentBid) -> bool:
         bid_diff = currentBid - self.prevBid
-        self.engine.print(f"Diff was: {bid_diff}")
         if bid_diff >= self.minbid and bid_diff <= 3*self.minbid:
             return True
         else:
@@ -45,7 +51,6 @@ class CompetitorInstance():
     def onBidMade(self, whoMadeBid, howMuch):
         if (self.is_NPC(howMuch) == False):
             if whoMadeBid not in self.competitor_bots:
-                self.engine.print(f"====== {whoMadeBid} was added to competitors with diff of {howMuch - self.prevBid}")
                 self.competitor_bots.append(whoMadeBid)
 
         self.prevBid = howMuch
