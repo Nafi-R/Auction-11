@@ -38,7 +38,6 @@ class CompetitorInstance():
         # if not our bot, check is NPC bot
         # if not NPC bot, add to competitor list
         # identify who didn't make a bid 
-
         if whoMadeBid not in self.has_made_first_bid:
             temp = self.prevBid
             if howMuch == self.math_func(temp):
