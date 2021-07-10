@@ -328,6 +328,7 @@ class NPCRandomBot():
         self.engine = engine
 
     def onAuctionStart(self, index, trueValue):
+        self.engine.print(f"NPC at {index}")
         pass
 
     def onBidMade(self, whoMadeBid, howMuch):
@@ -336,7 +337,7 @@ class NPCRandomBot():
     def onMyTurn(self, lastBid):
         pr=32/50
         if lastBid>self.mean/4:
-            pr=16/100
+            pr=16/100 
         if lastBid>self.mean*3/4:
             pr=2/50
         if random.random() < pr:

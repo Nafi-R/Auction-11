@@ -8,6 +8,7 @@ class CompetitorInstance():
         self.gameParameters=gameParameters
     
     def onAuctionStart(self, index, trueValue):
+        self.engine.print(f"I am a random accuser at {index}")
         pass
 
     def onBidMade(self, whoMadeBid, howMuch):
@@ -15,7 +16,7 @@ class CompetitorInstance():
 
     def onMyTurn(self,lastBid):
         if self.engine.random.randint(0,100)<20:
-            self.engine.makeBid(lastBid+1)
+            self.engine.makeBid(lastBid+8*4)
         pass
 
     def onAuctionEnd(self):

@@ -1,10 +1,12 @@
+from types import ClassMethodDescriptorType
 from gameEngine import GameEngine, NPCRandomBot
 import importlib
 
 # List your bots here
 botsToRun = {
-    "our_bot":2,
-    "example.randomAccuser": 2
+    "our_bot2":1,
+    "examples.randomAccuser": 2,
+    "examples.randomBidder": 2,
     "NPC": 4
 }
 
