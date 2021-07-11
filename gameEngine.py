@@ -6,7 +6,7 @@ import threading
 import ctypes
 import importlib
 
-availableImports = ["random","math"]
+availableImports = ["random","math","time"]
 
 log_file_cap=1000*1000 # 1kb max log file size
 functionExecutionTime = 0.05
@@ -123,7 +123,7 @@ class GameEngine():
 
     def runGame(self):
         random.shuffle(self.competitors)
-        self.internalPrint("minlog","!ml",f"{','.join([c['team'] for c in self.competitors])}/")
+        self.internalPrint("minlog","!ml",f"{','.join([c['team'] for c in self.competitors])}|{self.gameParameters['meanTrueValue']}|{self.gameParameters['stddevTrueValue']}/")
         self.gameParameters["numPlayers"]=len(self.competitors)
         for c in self.competitors:
             self.callWithTimeout(c["team"],
@@ -136,11 +136,10 @@ class GameEngine():
                 0, len(self.competitors)-1)
             self.currentBidPlayer = (
                 self.resettingBidPlayer+1) % len(self.competitors)
-            self.internalPrint("minlog","!ml",f"{self.currentBidPlayer}:{self.currentBid}|")
             self.lastBidPlayer = self.resettingBidPlayer
             self.nPassed = 0
             self.trueValue = int ( linterp(normalY2, normalX, random.random())* self.gameParameters["stddevTrueValue"] + self.gameParameters["meanTrueValue"])
-
+            self.internalPrint("minlog","!ml",f"t:{self.trueValue}|")
             # decide who gets true value
             teamsWhoGetTrueValue = {}  # key = teamno, val = whoInTeamGetsIt
             for t in self.teams:
@@ -155,20 +154,31 @@ class GameEngine():
                         self.callWithTimeout(c["team"],c["instance"].onAuctionStart,functionExecutionTime,i, self.trueValue)
                         c["knowsTrue"] = True
                         initialised = True
-                    else:
-                        teamsWhoGetTrueValue[c["team"]] -= 1
+                        self.internalPrint("minlog","!ml",f"k:{i}|")
+                    teamsWhoGetTrueValue[c["team"]] -= 1
                 if not initialised:
                     self.callWithTimeout(c["team"],c["instance"].onAuctionStart,functionExecutionTime, i,-1)
                     c["knowsTrue"] = False
             self.internalPrint("engine","engine",f"Starting Auction {self.auctionNumber}")
-
+            self.internalPrint("minlog","!ml",f"{self.currentBidPlayer}:{self.currentBid}|")
             # Main loop
             while self.nPassed < len(self.competitors) and self.currentBid<self.gameParameters["penaltyMax"]:
+                self.protoCurrentBid=-1
                 self.callWithTimeout(self.competitors[self.currentBidPlayer]["team"],
                     self.competitors[self.currentBidPlayer]["instance"].onMyTurn,
                     functionExecutionTime,
                     self.currentBid
                 )
+                if (self.protoCurrentBid != -1):
+                    self.currentBid=self.protoCurrentBid
+                    # only accept one bid (last call made)
+                    self.internalPrint("engine","engine",f"competitor {self.currentBidPlayer} made a bid of {self.currentBid}")
+                    self.internalPrint("minlog","!ml",f"{self.currentBidPlayer}:{self.currentBid}|")
+                    # save the currentPrintingPlayer so that log owners still make sense
+                    savedPlayer = self.currentPrintingPlayer
+                    for c in self.competitors:
+                        self.callWithTimeout(c["team"],c["instance"].onBidMade,functionExecutionTime,self.currentBidPlayer,self.currentBid)
+                    self.currentPrintingPlayer=savedPlayer
                 self.currentBidPlayer = self.currentBidPlayer + 1
                 self.currentBidPlayer = self.currentBidPlayer % len(
                     self.competitors)
@@ -178,20 +188,27 @@ class GameEngine():
             # Finishing the round
             self.nPassed=-1
             teamindex = self.competitors[self.lastBidPlayer]["team"]
+            scoreLog = f"s:{self.lastBidPlayer}:{self.trueValue - self.currentBid - (self.gameParameters['knowledgePenalty'] if self.competitors[self.lastBidPlayer]['knowsTrue'] else 0)}|"
             self.internalPrint("engine","engine","Auction {}: Team {} copped it at a price of {}; true value was {}".format(
                 self.auctionNumber, teamindex if teamindex is not None else "[NPC Random]", self.currentBid, self.trueValue))
             if teamindex is not None:
                 self.teams[teamindex]["score"] = self.teams[teamindex]["score"] + \
                     self.trueValue - self.currentBid - \
                     (self.gameParameters["knowledgePenalty"]
-                     if self.competitors[self.currentBidPlayer]["knowsTrue"] else 0)
+                     if self.competitors[self.lastBidPlayer]["knowsTrue"] else 0)
             for t in self.teams:
                 self.teams[t]["protoReportScore"]=0
+                self.teams[t]["whoReportedBest"]=-1
             for i,c in enumerate(self.competitors):
                 self.currentBidPlayer = i
                 self.callWithTimeout(c["team"],c["instance"].onAuctionEnd,functionExecutionTime)
+            statusLog = "S"
             for t in self.teams:
                 self.teams[t]["score"] += self.teams[t]["protoReportScore"]
+                scoreLog += f"R:{self.teams[t]['whoReportedBest']}:{self.teams[t]['protoReportScore']}|"
+                statusLog+= f":{self.teams[t]['score']}"
+            self.internalPrint("minlog","!ml",scoreLog)
+            self.internalPrint("minlog","!ml",statusLog)
             self.internalPrint("minlog","!ml",f"/")
         self.internalPrint("engine","engine","Final scores:")
         for i in self.teams:
@@ -212,16 +229,9 @@ class GameEngine():
         if not valid:
             self.internalPrint("error",self.currentPrintingPlayer,f"Bad bid! Cannot bid {amount} {reason}")
         else:
-            self.currentBid = amount
+            self.protoCurrentBid = amount
             self.lastBidPlayer = self.currentBidPlayer
             self.nPassed = 0
-            self.internalPrint("engine","engine",f"competitor {self.currentBidPlayer} made a bid of {self.currentBid}")
-            self.internalPrint("minlog","!ml",f"{self.currentBidPlayer}:{self.currentBid}|")
-            # save the currentPrintingPlayer so that log owners still make sense
-            savedPlayer = self.currentPrintingPlayer
-            for c in self.competitors:
-                self.callWithTimeout(c["team"],c["instance"].onBidMade,functionExecutionTime,self.currentBidPlayer,self.currentBid)
-            self.currentPrintingPlayer=savedPlayer
 
     def reportTeams(self, reportOwnTeam, reportNNPC, reportKnown):
         # check we are in the right state
@@ -229,6 +239,7 @@ class GameEngine():
             self.internalPrint("error",self.currentPrintingPlayer,f"Bad report! Still in auction.")
             return
 
+        self.internalPrint("minlog","!ml",f"r:{self.currentBidPlayer}")
         protoReportScore = 0
         reportingDone = False
         # check reportOwnTeam
@@ -245,12 +256,17 @@ class GameEngine():
                         raise ValueError
                     reportOwnTeamDict[tm]=True
                 for tm in reportOwnTeamDict:
-                    if self.competitors[int(tm)]["team"]==self.currentPrintingPlayer and int(tm) !=self.currentBidPlayer: 
-                        protoReportScore+=100/(self.teams[self.currentPrintingPlayer]['playersInTeam']-1)
-                        reportingDone = True
+                    if self.competitors[int(tm)]["team"]==self.currentPrintingPlayer:
+                        if int(tm) !=self.currentBidPlayer: 
+                            protoReportScore+=100/(self.teams[self.currentPrintingPlayer]['playersInTeam']-1)
+                            reportingDone = True
                     else:
-                        protoReportScore-=5/(self.teams[self.currentPrintingPlayer]['playersInTeam']-1)
+                        if self.teams[self.currentPrintingPlayer]['playersInTeam']==1:
+                            protoReportScore-=100
+                        else:
+                            protoReportScore-=100/(self.teams[self.currentPrintingPlayer]['playersInTeam']-1)
                         reportingDone = True
+                self.internalPrint("minlog","!ml",f":o:{','.join(map(lambda i: str(i), reportOwnTeam))}")
             except ValueError:
                 self.internalPrint("error",self.currentPrintingPlayer,f"Bad report of ownTeam! Reported bot {tm} was not a positive integer.")
         # check reportNPC
@@ -261,20 +277,20 @@ class GameEngine():
         else:
             reportNNPCDict={}
             try: 
-
                 for tm in reportNNPC:
                     tm = int(tm)
                     if tm<0:
                         raise ValueError
                     reportNNPCDict[tm]=True
                 for tm in reportNNPCDict:
-                    if self.competitors[int(tm)]["team"]!=None:
+                    if self.competitors[int(tm)]["team"]!="NPC":
                         if (self.competitors[int(tm)]["team"]!=self.currentPrintingPlayer):
                             protoReportScore+=15
                             reportingDone = True
                     else:
                         protoReportScore-=90
                         reportingDone = True
+                self.internalPrint("minlog","!ml",f":n:{','.join(map(lambda i: str(i), reportNNPC))}")
             except ValueError:
                 self.internalPrint("error",self.currentPrintingPlayer,f"Bad report of NPC bots! Reported bot {tm} was not a positive integer.")
         # check reportKnown
@@ -297,10 +313,13 @@ class GameEngine():
                     else:
                         protoReportScore-=50
                         reportingDone=True
+                self.internalPrint("minlog","!ml",f":k:{','.join(map(lambda i: str(i), reportKnown))}")
             except ValueError:
                 self.internalPrint("error",self.currentPrintingPlayer,f"Bad report of known value bots! Reported bot {tm} was not a positive integer.")
+        self.internalPrint("minlog","!ml",f"|")
         if reportingDone and self.teams[self.currentPrintingPlayer]["protoReportScore"]<protoReportScore:
             self.teams[self.currentPrintingPlayer]["protoReportScore"]=protoReportScore
+            self.teams[self.currentPrintingPlayer]["whoReportedBest"]=self.currentBidPlayer
 
     def _internalPrint(self,loggingLevel,source,msg):
         if loggingLevel in self.loggingLevel:
@@ -328,7 +347,6 @@ class NPCRandomBot():
         self.engine = engine
 
     def onAuctionStart(self, index, trueValue):
-        self.engine.print(f"NPC at {index}")
         pass
 
     def onBidMade(self, whoMadeBid, howMuch):
@@ -337,7 +355,7 @@ class NPCRandomBot():
     def onMyTurn(self, lastBid):
         pr=32/50
         if lastBid>self.mean/4:
-            pr=16/100 
+            pr=16/100
         if lastBid>self.mean*3/4:
             pr=2/50
         if random.random() < pr:
