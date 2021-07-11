@@ -1,4 +1,3 @@
-import random
 class CompetitorInstance():
     def __init__(self):
         # initialize personal variables
@@ -81,7 +80,7 @@ class CompetitorInstance():
                 probability = probability/2
             if lastBid > self.value - 1*stdv:
                 probability = 0
-            if(self.engine.random() < probability):
+            if(self.engine.random.random() < probability):
                 self.engine.makeBid(lastBid + self.minbid + 1)
 
     def onAuctionEnd(self):
