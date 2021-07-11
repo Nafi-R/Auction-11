@@ -48,9 +48,12 @@ class CompetitorInstance():
                 return False
 
     def onBidMade(self, whoMadeBid, howMuch):
-        if (self.is_NPC(howMuch) == False):
-            if whoMadeBid not in self.competitor_bots:
-                self.competitor_bots.append(whoMadeBid)
+        if(whoMadeBid in self.has_made_first_bid):
+            if (self.is_NPC(howMuch) == False):
+                if whoMadeBid not in self.competitor_bots:
+                    self.competitor_bots.append(whoMadeBid)
+        else:
+            self.has_made_first_bid.append(whoMadeBid)
 
         self.prevBid = howMuch
     
@@ -79,7 +82,7 @@ class CompetitorInstance():
             if lastBid > self.value - 2*stdv:
                 probability = 0.20
             if lastBid > self.value - 1*stdv:
-                probability = 0.10
+                probability = 0.5
             if(self.engine.random.random() < probability):
                 self.engine.makeBid(lastBid + self.minbid + 1)
 
