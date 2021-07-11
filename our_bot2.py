@@ -82,7 +82,7 @@ class CompetitorInstance():
             if lastBid > self.value - 2*stdv:
                 probability = 0.20
             if lastBid > self.value - 1*stdv:
-                probability = 0.5
+                probability = 0.05
             if(self.engine.random.random() < probability):
                 self.engine.makeBid(lastBid + self.minbid + 1)
 
