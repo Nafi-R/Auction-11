@@ -64,7 +64,7 @@ class CompetitorInstance():
     def onMyTurn(self,lastBid):
         # lastBid is the last bid that was made
         stdv = self.gameParameters["stddevTrueValue"]
-        probability = 1
+        probability = 0.8
 
         #run only on first bid to identify bots
         if self.hasBid == False:
@@ -73,13 +73,13 @@ class CompetitorInstance():
             self.hasBid = True
         else:
             if lastBid > self.value - 4*stdv:
-                probability = 1
+                probability = 0.80
             if lastBid > self.value - 3*stdv:
-                probability = probability/2
+                probability = 0.40
             if lastBid > self.value - 2*stdv:
-                probability = probability/2
+                probability = 0.20
             if lastBid > self.value - 1*stdv:
-                probability = 0
+                probability = 0.10
             if(self.engine.random.random() < probability):
                 self.engine.makeBid(lastBid + self.minbid + 1)
 
