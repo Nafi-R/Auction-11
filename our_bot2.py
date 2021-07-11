@@ -1,8 +1,8 @@
+import random
 class CompetitorInstance():
     def __init__(self):
         # initialize personal variables
         self.minbid = 0
-        self.trueValue = -1
         self.should_bid = True
         self.our_lastBid = 0
         self.prevBid = 0
@@ -26,7 +26,7 @@ class CompetitorInstance():
         # if we know the true value, let others bid.
         # If within certain range, allow us to buy
         self.engine.print(f"Our Bot index is {index}")
-        self.trueValue = trueValue
+        self.value = trueValue if trueValue != -1 else self.gameParameters["meanTrueValue"]
         self.our_bots = []
         self.competitor_bots = []
         self.has_made_first_bid = []
@@ -58,14 +58,14 @@ class CompetitorInstance():
 
     def math_func(self,lastBid) -> int:
         last_digit = (lastBid+8)%10
-        power_digit = last_digit^2
+        power_digit = last_digit**2
         bid = (lastBid+8) + power_digit
         return bid
 
     def onMyTurn(self,lastBid):
         # lastBid is the last bid that was made
-        mean = self.gameParameters["meanTrueValue"]
         stdv = self.gameParameters["stddevTrueValue"]
+        probability = 1
 
         #run only on first bid to identify bots
         if self.hasBid == False:
@@ -73,14 +73,17 @@ class CompetitorInstance():
             self.engine.makeBid(self.our_lastBid)
             self.hasBid = True
         else:
-            if(self.trueValue == -1): # don't know true value
-                pass
-            else: # If we do know the true value
-                pass
+            if lastBid > self.value - 4*stdv:
+                probability = 1
+            if lastBid > self.value - 3*stdv:
+                probability = probability/2
+            if lastBid > self.value - 2*stdv:
+                probability = probability/2
+            if lastBid > self.value - 1*stdv:
+                probability = 0
+            if(random.random() < probability):
+                self.engine.makeBid(lastBid + self.minbid + 1)
 
-        ###                      ###
-        # Bidding Code to be ADDED #
-        ###                      ###
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
         self.engine.print(f"Auction Ended")
