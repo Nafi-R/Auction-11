@@ -40,7 +40,8 @@ class CompetitorInstance():
         if(whoMadeBid in self.has_made_first_bid):
             if (self.is_NPC(howMuch) == False):
                 if whoMadeBid not in self.competitor_bots:
-                    self.competitor_bots.append(whoMadeBid)
+                    if whoMadeBid not in self.our_bots:
+                        self.competitor_bots.append(whoMadeBid)
         else:
             if howMuch == self.math_func(self.prevBid):
                 self.our_bots.append(whoMadeBid)
@@ -55,8 +56,21 @@ class CompetitorInstance():
         bid = (lastBid+8) + power_digit
         return bid
 
+    def normal_func(self,lastBid, mean, stdv) -> float:
+        e = self.engine.math.e
+        pi = self.engine.math.pi
+
+        exp = -(lastBid - mean)*(lastBid - mean)/(2*stdv*stdv)
+        ans = 1/(stdv*(self.engine.math.sqrt(2*pi))) * self.engine.math.pow(e,exp)
+        return ans
+
+    def get_probability(self,lastBid, mean, stdv) -> float:
+        return 1 - self.normal_func(lastBid, mean, stdv)/self.normal_func(mean, mean,stdv)
+
+
     def onMyTurn(self,lastBid):
         # lastBid is the last bid that was made
+        mean = self.gameParameters["meanTrueValue"]
         stdv = self.gameParameters["stddevTrueValue"]
         probability = 0.8
 
@@ -66,16 +80,11 @@ class CompetitorInstance():
             self.engine.makeBid(self.our_lastBid)
             self.hasBid = True
         else:
-            if lastBid > self.value - 4*stdv:
-                probability = 0.60
-            if lastBid > self.value - 3*stdv:
-                probability = 0.40
-            if lastBid > self.value - 2*stdv:
-                probability = 0.20
-            if lastBid > self.value - 1*stdv:
-                probability = 0.05
+            our_bid = lastBid + self.minbid + self.engine.random.randint(0,3*self.minbid) 
+            probability = self.get_probability(lastBid, mean, stdv)
             if(self.engine.random.random() < probability):
-                self.engine.makeBid(lastBid + self.minbid + 1)
+                if(our_bid < mean + 1*stdv):
+                    self.engine.makeBid(our_bid)
 
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
