@@ -80,10 +80,10 @@ class CompetitorInstance():
             self.engine.makeBid(self.our_lastBid)
             self.hasBid = True
         else:
-            our_bid = lastBid + self.minbid + self.engine.random.randint(0, int((mean-lastBid)/4))
-            probability = self.get_probability(our_bid, mean, stdv)
+            our_bid = lastBid + self.minbid + self.engine.random.randint(0, int((self.value-lastBid)/4))
+            probability = self.get_probability(our_bid, self.value, stdv)
             if(self.engine.random.random() < probability):
-                if(our_bid < mean + stdv/2):
+                if(our_bid < self.value + stdv/2):
                     self.engine.makeBid(our_bid)
 
     def onAuctionEnd(self):
