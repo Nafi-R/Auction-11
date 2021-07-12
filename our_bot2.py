@@ -1,14 +1,7 @@
 class CompetitorInstance():
     def __init__(self):
         # initialize personal variables
-        self.minbid = 0
-        self.should_bid = True
-        self.our_lastBid = 0
-        self.prevBid = 0
-        self.hasBid = False 
-        self.has_made_first_bid = [] 
-        self.our_bots = []
-        self.competitor_bots = []
+        pass
 
     def onGameStart(self, engine, gameParameters):
         # engine: an instance of the game engine with functions as outlined in the documentation.
@@ -33,8 +26,7 @@ class CompetitorInstance():
         self.prevBid = 0
         self.should_bid = True
         self.hasBid = False 
-        self.has_made_first_bid = [] 
-
+        self.has_made_first_bid = []
 
 
     def is_NPC(self, currentBid) -> bool:
@@ -42,10 +34,7 @@ class CompetitorInstance():
         if bid_diff >= self.minbid and bid_diff <= 3*self.minbid:
             return True
         else:
-            if bid_diff < 0:
-                return True
-            else:
-                return False
+            return False
 
     def onBidMade(self, whoMadeBid, howMuch):
         if(whoMadeBid in self.has_made_first_bid):
@@ -53,6 +42,8 @@ class CompetitorInstance():
                 if whoMadeBid not in self.competitor_bots:
                     self.competitor_bots.append(whoMadeBid)
         else:
+            if howMuch == self.math_func(self.prevBid):
+                self.our_bots.append(whoMadeBid)
             self.has_made_first_bid.append(whoMadeBid)
 
         self.prevBid = howMuch
@@ -82,7 +73,7 @@ class CompetitorInstance():
             if lastBid > self.value - 2*stdv:
                 probability = 0.20
             if lastBid > self.value - 1*stdv:
-                probability = 0
+                probability = 0.05
             if(self.engine.random.random() < probability):
                 self.engine.makeBid(lastBid + self.minbid + 1)
 
