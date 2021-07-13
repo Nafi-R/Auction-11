@@ -21,6 +21,7 @@ class CompetitorInstance():
         self.value = trueValue if trueValue != -1 else self.gameParameters["meanTrueValue"]
         self.our_bots = []
         self.competitor_bots = []
+        self.known_bots = []
         self.has_made_first_bid = []
         self.our_lastBid = 0
         self.prevBid = 0
@@ -55,6 +56,23 @@ class CompetitorInstance():
 
         self.prevBid = howMuch
     
+    def addOwnBot(self, index):
+        if index in self.our_bots:
+            return
+        if index in self.competitor_bots:
+            return
+        self.our_bots.append(index)
+
+    def addCompetitor(self, index):
+        if index in self.our_bots:
+            self.our_bots.remove(index)
+        if index not in self.competitor_bots:
+            self.competitor_bots.append(index)
+
+    def addKnownBot(self, index):
+        if index not in self.known_bots:
+            self.known_bots.append(index)
+
 
     def math_func(self,lastBid) -> int:
         last_digit = (lastBid+8)%10
@@ -82,14 +100,13 @@ class CompetitorInstance():
 
         #run only on first bid to identify bots
         if self.hasBid == False:
-            self.our_lastBid = self.math_func(lastBid)
-            self.engine.makeBid(self.our_lastBid)
+            self.engine.makeBid(self.math_func(lastBid))
             self.hasBid = True
         else:
             our_bid = lastBid + self.minbid + self.engine.random.randint(0, 3*self.minbid)
             probability = self.get_probability(our_bid, self.value, stdv)
             if(self.engine.random.random() < probability):
-                if(our_bid < self.value + stdv/2):
+                if(our_bid < self.value):
                     self.engine.makeBid(our_bid)
 
     def onAuctionEnd(self):
