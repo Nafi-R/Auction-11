@@ -63,8 +63,7 @@ class CompetitorInstance():
             self.our_bots.append(index)
 
     def addCompetitor(self, index):
-        if index in self.our_bots:
-            self.our_bots.remove(index)
+        self.removeOwnBot(index)
         if index not in self.competitor_bots:
             self.competitor_bots.append(index)
 
