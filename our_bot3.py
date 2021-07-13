@@ -38,7 +38,7 @@ class CompetitorInstance():
             return False
 
     def onBidMade(self, whoMadeBid, howMuch):
-        botType = self.placeBot(whoMadeBid, howMuch)
+        self.placeBot(whoMadeBid, howMuch)
         self.prevBid = howMuch
     
     def placeBot(self, index, howMuch):
