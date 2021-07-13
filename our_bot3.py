@@ -18,8 +18,10 @@ class CompetitorInstance():
         # if we know the true value, let others bid.
         # If within certain range, allow us to buy
         self.engine.print(f"Our Bot index is {index}")
+        self.thisIndex = index
         self.value = trueValue if trueValue != -1 else self.gameParameters["meanTrueValue"]
         self.our_bots = []
+        self.other_bots = []
         self.competitor_bots = []
         self.known_bots = []
         self.has_made_first_bid = []
@@ -28,6 +30,8 @@ class CompetitorInstance():
         self.should_bid = True
         self.hasBid = False
         self.bid_diff = {}
+        for i in range(0,self.gameParameters["numPlayers"]):
+            self.bid_diff[i] = set()
 
 
     def is_NPC(self, currentBid) -> bool:
@@ -44,13 +48,21 @@ class CompetitorInstance():
     def placeBot(self, index, howMuch):
         #OUTPUT: "Own", "Competitor", "NPC"
         if self.math_func(self.prevBid) == howMuch:
-            self.addOwnBot(index)
-            return
+            if index not in self.other_bots:
+                self.addOwnBot(index)
+                return
         else:
-            self.removeOwnBot(index)
-        if self.is_NPC(howMuch) == False:
+            if index not in self.other_bots:
+                self.other_bots.append(index)
+        if self.isCompetitor(index,howMuch) == True:
             self.addCompetitor(index)
-            return
+
+    def isCompetitor(self, index, howMuch) -> bool:
+        if(self.is_NPC(howMuch) == False):
+            return True
+        else:
+            self.bid_diff[index].add(howMuch - self.prevBid)
+            return False
 
     def removeOwnBot(self, index):
         if index in self.our_bots:
@@ -66,6 +78,14 @@ class CompetitorInstance():
         self.removeOwnBot(index)
         if index not in self.competitor_bots:
             self.competitor_bots.append(index)
+    
+    def addRemainingCompetitors(self):
+        for index in self.bid_diff:
+            if index not in self.our_bots:
+                if index not in self.competitor_bots:
+                    size = len(self.bid_diff[index])
+                    if size >=1 and size <= 3:
+                        self.competitor_bots.append(index)
 
     def addKnownBot(self, index):
         if index not in self.known_bots:
@@ -87,7 +107,7 @@ class CompetitorInstance():
         return ans
 
     def get_probability(self,lastBid, mean, stdv) -> float:
-        return 1 - self.normal_func(lastBid, mean, stdv)/self.normal_func(mean, mean,stdv)
+        return 1 - 0.90*self.normal_func(lastBid, mean, stdv)/self.normal_func(mean, mean,stdv)
 
 
     def onMyTurn(self,lastBid):
@@ -99,7 +119,7 @@ class CompetitorInstance():
         our_bid = self.math_func(lastBid)
         if(our_bid > self.value - stdv/3):
             return
-            
+
         probability = self.get_probability(our_bid, self.value, stdv)
         
         if(self.engine.random.random() < probability):
@@ -108,6 +128,7 @@ class CompetitorInstance():
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
         self.engine.print(f"Auction Ended")
+        self.addRemainingCompetitors()
         self.engine.reportTeams(self.our_bots, self.competitor_bots, [])
         self.engine.print(f"Our bots are {self.our_bots} and enemy bots are {self.competitor_bots}")
         pass
