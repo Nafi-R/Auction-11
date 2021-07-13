@@ -74,7 +74,7 @@ class CompetitorInstance():
 
 
     def math_func(self,lastBid) -> int:
-        last_digit = (lastBid+8)%10
+        last_digit = (lastBid+ self.minbid + 1)%10
         power_digit = last_digit**2
         bid = (lastBid+8) + power_digit
         return bid
