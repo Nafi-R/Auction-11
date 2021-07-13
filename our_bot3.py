@@ -97,10 +97,13 @@ class CompetitorInstance():
 
         #run only on first bid to identify bots
         our_bid = self.math_func(lastBid)
+        if(our_bid > self.value - stdv/3):
+            return
+            
         probability = self.get_probability(our_bid, self.value, stdv)
+        
         if(self.engine.random.random() < probability):
-            if(our_bid < self.value - stdv/2):
-                self.engine.makeBid(our_bid)
+            self.engine.makeBid(our_bid)
 
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
