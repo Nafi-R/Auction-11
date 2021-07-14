@@ -37,7 +37,7 @@ class CompetitorInstance():
 
     def is_NPC(self, currentBid) -> bool:
         bid_diff = currentBid - self.prevBid
-        if bid_diff <= 3*self.minbid:
+        if bid_diff < 3*self.minbid:
             return True
         else:
             return False
@@ -134,7 +134,8 @@ class CompetitorInstance():
             our_bid = self.math_func1(lastBid)
         else:
             our_bid = self.math_func2(lastBid)
-        if(our_bid > self.value - stdv/4):
+
+        if(our_bid > self.value - stdv/2):
             return
 
         probability = self.get_probability(our_bid, self.value, stdv)
