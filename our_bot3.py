@@ -17,9 +17,10 @@ class CompetitorInstance():
         # trueValue is -1 if this bot doesn't know the true value 
         # if we know the true value, let others bid.
         # If within certain range, allow us to buy
-        self.engine.print(f"Our Bot index is {index}")
+        self.engine.print(f"Our Bot index is {index} and knows value: {trueValue != -1}")
         self.thisIndex = index
         self.value = trueValue if trueValue != -1 else self.gameParameters["meanTrueValue"]
+        self.knowsValue = True if trueValue != -1 else False
         self.our_bots = []
         self.other_bots = []
         self.competitor_bots = []
@@ -47,15 +48,21 @@ class CompetitorInstance():
     
     def placeBot(self, index, howMuch):
         #OUTPUT: "Own", "Competitor", "NPC"
-        if self.math_func(self.prevBid) == howMuch:
+        if self.math_func1(self.prevBid) == howMuch:
+            if index not in self.other_bots:
+                self.addOwnBot(index)
+                if index not in self.known_bots:
+                    self.known_bots.append(index)
+                return
+        elif self.math_func2(self.prevBid) == howMuch:
             if index not in self.other_bots:
                 self.addOwnBot(index)
                 return
         else:
             if index not in self.other_bots:
                 self.other_bots.append(index)
-        if self.isCompetitor(index,howMuch) == True:
-            self.addCompetitor(index)
+            if self.isCompetitor(index,howMuch) == True:
+                self.addCompetitor(index)
 
     def isCompetitor(self, index, howMuch) -> bool:
         if(self.is_NPC(howMuch) == False):
@@ -92,11 +99,18 @@ class CompetitorInstance():
             self.known_bots.append(index)
 
 
-    def math_func(self,lastBid) -> int:
+    def math_func1(self,lastBid) -> int:
         last_digit = (lastBid+ self.minbid + 1)%10
         power_digit = last_digit**2
         bid = (lastBid+8) + power_digit
         return bid
+
+    def math_func2(self,lastBid) -> int:
+        last_digit = (lastBid+ self.minbid + 5)%10
+        power_digit = last_digit**2 + 1
+        bid = (lastBid+8) + power_digit
+        return bid
+
 
     def normal_func(self,lastBid, mean, stdv) -> float:
         e = self.engine.math.e
@@ -116,7 +130,10 @@ class CompetitorInstance():
         stdv = self.gameParameters["stddevTrueValue"]
 
         #run only on first bid to identify bots
-        our_bid = self.math_func(lastBid)
+        if self.knowsValue:
+            our_bid = self.math_func1(lastBid)
+        else:
+            our_bid = self.math_func2(lastBid)
         if(our_bid > self.value - stdv/4):
             return
 
@@ -129,6 +146,6 @@ class CompetitorInstance():
         # Now is the time to report team members, or do any cleanup.
         self.engine.print(f"Auction Ended")
         self.addRemainingCompetitors()
-        self.engine.reportTeams(self.our_bots, self.competitor_bots, [])
-        self.engine.print(f"Our bots are {self.our_bots} and enemy bots are {self.competitor_bots}")
+        self.engine.reportTeams(self.our_bots, self.competitor_bots, self.known_bots)
+        self.engine.print(f"Our bots are {self.our_bots} and enemy bots are {self.competitor_bots} , Known: {self.known_bots}")
         pass
