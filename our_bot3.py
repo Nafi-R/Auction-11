@@ -107,7 +107,7 @@ class CompetitorInstance():
         return ans
 
     def get_probability(self,lastBid, mean, stdv) -> float:
-        return 1 - 0.90*self.normal_func(lastBid, mean, stdv)/self.normal_func(mean, mean,stdv)
+        return 1 - 0.75*self.normal_func(lastBid, mean, stdv)/self.normal_func(mean, mean,stdv)
 
 
     def onMyTurn(self,lastBid):
@@ -117,7 +117,7 @@ class CompetitorInstance():
 
         #run only on first bid to identify bots
         our_bid = self.math_func(lastBid)
-        if(our_bid > self.value - stdv/3):
+        if(our_bid > self.value):
             return
 
         probability = self.get_probability(our_bid, self.value, stdv)
