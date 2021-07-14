@@ -117,7 +117,7 @@ class CompetitorInstance():
 
         #run only on first bid to identify bots
         our_bid = self.math_func(lastBid)
-        if(our_bid > self.value):
+        if(our_bid > self.value - stdv/4):
             return
 
         probability = self.get_probability(our_bid, self.value, stdv)
