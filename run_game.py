@@ -3,9 +3,10 @@ import importlib
 
 # List your bots here
 botsToRun = {
-    "our_bot2":1,
+    "our_bot4":3,
     "our_bot3":3,
-    "NPC": 2
+    "our_bot2":3,
+    "NPC": 3
 }
 
 engine = GameEngine()

@@ -146,7 +146,7 @@ class CompetitorInstance():
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
         self.engine.print(f"Auction Ended")
-        self.addRemainingCompetitors()
+        #self.addRemainingCompetitors()
         self.engine.reportTeams(self.our_bots, self.competitor_bots, self.known_bots)
         self.engine.print(f"Our bots are {self.our_bots} and enemy bots are {self.competitor_bots} , Known: {self.known_bots}")
         pass
