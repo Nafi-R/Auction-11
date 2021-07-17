@@ -9,6 +9,7 @@ class CompetitorInstance():
         self.engine=engine
     
     def onAuctionStart(self, index, trueValue):
+        self.thisIndex = index
         pass
 
     def onBidMade(self, whoMadeBid, howMuch):
@@ -20,4 +21,5 @@ class CompetitorInstance():
         pass
 
     def onAuctionEnd(self):
+        self.engine.print(f"RandomBidder {self.thisIndex}")
         pass

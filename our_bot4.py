@@ -24,6 +24,8 @@ class CompetitorInstance():
         self.value = trueValue if trueValue != -1 else self.gameParameters["meanTrueValue"]
         self.knowsValue =  trueValue != -1 
         self.botStatus = {}
+        for i in range(0,self.gameParameters["numPlayers"]):
+            self.botStatus[i] = "NPC"
         self.our_bots = []
         self.competitor_bots = []
         self.known_bots = []
@@ -45,7 +47,7 @@ class CompetitorInstance():
         stdv = self.gameParameters["stddevTrueValue"]
 
         if self.phase == "phase_1":
-            if self.knowsValue:
+            if not self.knowsValue:
                 our_bid = self.math_func1(lastBid)
             else:
                 our_bid = self.math_func2(lastBid)
@@ -75,11 +77,11 @@ class CompetitorInstance():
                 if i not in self.knowsTrue:
                     fakeBots.append(i)
             self.engine.reportTeams(self.our_bots, self.competitor_bots, fakeBots)
-            self.engine.print(f"Our bots are {self.our_bots} and enemy bots are {self.competitor_bots} , Known: {fakeBots}")  
+            self.engine.print(f"[{self.thisIndex}] Our bots are {self.our_bots} and enemy bots are {self.competitor_bots} , Known: {fakeBots}")  
             self.engine.print(f"Bid order: {self.bidOrder}")      
         else:
             self.engine.reportTeams(self.our_bots, self.competitor_bots, self.known_bots)
-            self.engine.print(f"Our bots are {self.our_bots} and enemy bots are {self.competitor_bots} , Known: {self.known_bots}")
+            self.engine.print(f" [{self.thisIndex}] Our bots are {self.our_bots} and enemy bots are {self.competitor_bots} , Known: {self.known_bots}")
         pass
 
     ##################
@@ -95,12 +97,12 @@ class CompetitorInstance():
                     self.addKnownBot(index)
             elif self.isCompetitor(index, howMuch):
                 self.setCompetitorBot(index)
-        elif current_status == "Own":
-            if self.isOwnBot(index, howMuch) == False:
-                if self.isCompetitor(howMuch) == True:
-                    self.setCompetitorBot(index)
-                else:
-                    self.setNPC(index)
+        # elif current_status == "Own":
+        #     if self.isOwnBot(index, howMuch) == False:
+        #         if self.isCompetitor(index, howMuch) == True:
+        #             self.setCompetitorBot(index)
+        #         else:
+        #             self.setNPC(index)
 
     def isCompetitor(self, index, howMuch) -> bool:
         if(self.is_NPC(howMuch) == False):
@@ -130,7 +132,6 @@ class CompetitorInstance():
                 if self.math_func2(self.prevBid) == howMuch:
                     return True
         return False
-                
 
     def knowsTrueValue(self, index, howMuch) -> bool:
         if self.phase == "phase_1":
@@ -197,3 +198,13 @@ class CompetitorInstance():
                 self.our_bots.append(index)
             elif self.botStatus[index] == "Competitor":
                 self.competitor_bots.append(index)
+    
+    def printOurBots(self):
+        ours = []
+        comp = []
+        for i in self.botStatus:
+            if self.botStatus[i] == "Own":
+                ours.append(i)
+            elif self.botStatus[i] == "Competitor":
+                comp.append(i)
+        print(f"Our: {ours} Comp: {comp}")
