@@ -22,6 +22,7 @@ class CompetitorInstance():
         self.bidOrder = self.gameParameters["bidOrder"]
         self.mean = self.gameParameters["meanTrueValue"]
         self.thisIndex = index
+        self.givenValue = trueValue
         self.value = trueValue if trueValue != -1 else self.gameParameters["meanTrueValue"]
         self.knowsValue = True if trueValue != -1 else False
         # index : [status, bidCount]
@@ -33,7 +34,6 @@ class CompetitorInstance():
         self.competitor_bots = []
         self.known_bots = []
         self.has_made_first_bid = []
-        self.knowsTrue = []
         self.biddersThisTurn = set() 
         self.our_lastBid = 0
         self.prevBid = 1
@@ -49,10 +49,7 @@ class CompetitorInstance():
         bid_diff = currentBid - self.prevBid
         mult = 3 if self.phase == "phase_1" else 30
         if bid_diff < mult*self.minbid:
-            if currentBid > self.mean*3/4:    
-                return False
-            else:
-                return True
+            return True
         else:
             return False
 
@@ -64,24 +61,34 @@ class CompetitorInstance():
     
     def placeBot(self, index, howMuch):
         #OUTPUT: "Own", "Competitor", "NPC"
+        # First Turn (which bots are ours)
         if self.botStatus[index][1] == 1:
-            if self.math_func1(self.prevBid) == howMuch:
+            if self.math_func1(self.prevBid, index) == howMuch:
                 self.botStatus[index][0] = "Own"
             elif not self.is_NPC(howMuch):
                 self.botStatus[index][0] = "Competitor"
+        #Second Turn (which of our bots know the true value)
         elif self.botStatus[index][1] == 2:
-            if self.phase == "phase1":
+            if self.phase == "phase_1":
+                if self.botStatus[index][0] == "Own":
+                    if self.math_func2(self.prevBid, -1) != howMuch:
+                        self.addKnownBot(index)
+            else:
+                if self.botStatus[index][0] == "Own":
+                    if self.math_func2(self.prevBid, self.value) != howMuch:
+                        self.addKnownBot(index)
                 pass
+        #Third Turn (get the true value and tell our other bots)
         elif self.botStatus[index][1] == 3:
-            if self.botStatus[index][0] == "Own":
-                if index in self.known_bots:
-                    bid_diff = howMuch - self.prevBid
-                    self.value = bid_diff**2
+                if self.botStatus[index][0] == "Own":
+                    if index in self.known_bots:
+                        bid_diff = howMuch - self.prevBid
+                        self.value = bid_diff**2
+        #Every other Turn
         else:
-            pass
-            # if self.botStatus[index][0] == "NPC":
-            #     if not self.is_NPC(howMuch):
-            #         self.botStatus[index][0] = "Competitor"
+            if self.botStatus[index][0] == "NPC":
+                if not self.is_NPC(howMuch):
+                    self.botStatus[index][0] = "Competitor"
 
 
 
@@ -135,21 +142,21 @@ class CompetitorInstance():
             self.known_bots.append(index)
 
 
-    def math_func1(self,lastBid) -> int:
-        last_digit = (lastBid+ self.minbid + 1)%10
-        power_digit = last_digit**2
-        bid = (lastBid+8) + power_digit
-        return bid
-
-    def math_func2(self,lastBid, value) -> int:
-        num = hash((lastBid, value))%100    
+    #Bots that our ours do this function on the first bet
+    def math_func1(self,lastBid, index) -> int:
+        num = hash((lastBid,index))%100
         bid = (lastBid+self.minbid) + num
         return bid
 
-    def math_func3(self,lastBid) -> int:
-        last_digit = (lastBid + self.value)%10
-        power_digit = last_digit**3 + 1
-        bid = (lastBid+8) + power_digit
+    #Bots that know the true/fake value do thos in the second bet
+    def math_func2(self,lastBid, knownValue) -> int:
+        num = hash((lastBid, knownValue))%100    
+        bid = (lastBid+self.minbid) + num
+        return bid
+
+    #Creates signal for other bots to find the true value (bid increase = sqrt(trueValue))
+    def math_func3(self,lastBid, value) -> int:
+        bid = lastBid+ self.engine.math.floor(self.engine.math.sqrt(value))
         return bid
 
 
@@ -183,23 +190,27 @@ class CompetitorInstance():
         #         our_bid = self.math_func2(lastBid)       
 
         if self.botStatus[self.thisIndex][1] == 0:  
-            our_bid = self.math_func1(lastBid) # Finds our own bots [0,1,2]
+            our_bid = self.math_func1(lastBid, self.thisIndex) # Finds our own bots [0,1,2]
         elif self.botStatus[self.thisIndex][1] == 1:
-            if self.knowsTrue:
-                our_bid = self.math_func2(lastBid, self.value) # Finds true/fake value [0]
-            else: 
-                our_bid = lastBid + self.minbid + 1
+            if(self.phase == "phase_1"):
+                if self.knowsValue:
+                    our_bid = self.math_func2(lastBid, self.givenValue) # Finds true/fake value [0]
+                else: 
+                    our_bid = self.math_func2(lastBid, -1)
+            else:
+                our_bid = self.math_func2(lastBid, self.value)
         elif self.botStatus[self.thisIndex][1] == 2:
-            our_bid = self.math_func3(lastBid) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
+            our_bid = self.math_func3(lastBid, self.value) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
         else:
             our_bid = lastBid + self.minbid + self.engine.random.randint(0,10)
 
         # if our bots have not bid
         #    bid
         # reset our biddersThisTurn list
+        # = set()
 
 
-        if(our_bid > self.value*0.95):
+        if(lastBid > self.value*0.95):
                 return
 
         self.engine.makeBid(our_bid)
@@ -213,17 +224,7 @@ class CompetitorInstance():
         # Now is the time to report team members, or do any cleanup.
         self.engine.print(f"Auction Ended")
         #self.addRemainingCompetitors()
-        if self.phase == "phase_2":
-            fakeBots = []
-            for i in self.our_bots:
-                if i not in self.knowsTrue:
-                    fakeBots.append(i)
-
-            self.engine.reportTeams(self.our_bots, self.competitor_bots, fakeBots)
-            self.engine.print(f"[{self.thisIndex}]Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {fakeBots}")  
-            self.engine.print(f"Bid order: {self.bidOrder}")      
-        else:
-            self.engine.reportTeams(self.getOurBots() , self.getCompetitorBots(), self.known_bots)
-            self.engine.print(f"[{self.thisIndex}] Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {self.known_bots}")
-            self.engine.print(f"Dict: {self.botStatus}")
+        self.engine.reportTeams(self.getOurBots() , self.getCompetitorBots(), self.known_bots)
+        self.engine.print(f"[{self.thisIndex}] Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {self.known_bots}")
+        self.engine.print(f"[{self.knowsValue}] = {self.value} , {self.givenValue}")
         pass

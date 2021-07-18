@@ -21,5 +21,5 @@ class CompetitorInstance():
         pass
 
     def onAuctionEnd(self):
-        self.engine.print(f"RandomBidder {self.thisIndex}")
+        self.engine.print(f"==RandomBidder [{self.thisIndex}]==")
         pass

@@ -20,7 +20,7 @@ class CompetitorInstance():
         pass
 
     def onAuctionEnd(self):
-        self.engine.print(f"RandomAccuser [{self.thisIndex}]")
+        self.engine.print(f"==RandomAccuser [{self.thisIndex}]==")
         playerList = list(range(0,self.gameParameters["numPlayers"]))
         reportOwnTeam = random.sample(playerList,5)
         self.engine.reportTeams(reportOwnTeam, [], [])
