@@ -213,9 +213,12 @@ class CompetitorInstance():
                 return
 
         shouldBid = True
-        for ourBot in self.getOurBots():
-            if ourBot in self.biddersThisTurn:
-                shouldBid = False
+
+        if self.botStatus[self.thisIndex][1] > 3:
+            for ourBot in self.getOurBots():
+                if ourBot in self.biddersThisTurn:
+                    if ourBot < self.thisIndex:
+                        shouldBid = False
 
         self.biddersThisTurn = set()
         if shouldBid:
