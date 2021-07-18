@@ -209,11 +209,17 @@ class CompetitorInstance():
         # reset our biddersThisTurn list
         # = set()
 
-
-        if(lastBid > self.value*0.95):
+        if(lastBid > self.value):
                 return
 
-        self.engine.makeBid(our_bid)
+        shouldBid = True
+        for ourBot in self.getOurBots():
+            if ourBot in self.biddersThisTurn:
+                shouldBid = False
+
+        self.biddersThisTurn = set()
+        if shouldBid:
+            self.engine.makeBid(our_bid)
         #run only on first bid to identify bots
         # probability = self.get_probability(our_bid, self.value, stdv)
         
