@@ -222,8 +222,7 @@ class CompetitorInstance():
         if self.botStatus[self.thisIndex][1] > 3:
             for ourBot in self.getOurBots():
                 if ourBot in self.biddersThisTurn:
-                    if ourBot < self.thisIndex:
-                        shouldBid = False
+                    shouldBid = False
 
         if shouldBid:
             self.engine.makeBid(our_bid)
