@@ -10,6 +10,7 @@ class CompetitorInstance():
         self.gameParameters = gameParameters
         self.minbid = gameParameters["minimumBid"]
         self.engine.print("Game Started!")
+        self.auctionNumber = 0
 
     
     def onAuctionStart(self, index, trueValue):
@@ -21,20 +22,22 @@ class CompetitorInstance():
         self.phase = self.gameParameters["phase"]
         self.bidOrder = self.gameParameters["bidOrder"]
         self.mean = self.gameParameters["meanTrueValue"]
+        self.numPlayers = self.gameParameters["numPlayers"]
         self.thisIndex = index
         self.givenValue = trueValue
         self.value = trueValue if trueValue != -1 else self.gameParameters["meanTrueValue"]
         self.knowsValue = True if trueValue != -1 else False
         # index : [status, bidCount]
         self.botStatus = {}
-        for i in range(0, self.gameParameters["numPlayers"]):
+        for i in range(0, self.numPlayers):
             self.botStatus[i] = ["NPC", 0]
         self.our_bots = []
         self.other_bots = []
         self.competitor_bots = []
         self.known_bots = []
         self.has_made_first_bid = []
-        self.biddersThisTurn = set() 
+        self.biddersThisTurn = set()
+        self.firstBidder = (self.bidOrder[self.auctionNumber] + 1)%self.numPlayers
         self.our_lastBid = 0
         self.prevBid = 1
         self.should_bid = True
@@ -56,6 +59,8 @@ class CompetitorInstance():
     def onBidMade(self, whoMadeBid, howMuch):
         self.botStatus[whoMadeBid][1] += 1
         self.placeBot(whoMadeBid, howMuch)
+        if whoMadeBid == self.firstBidder:
+            self.biddersThisTurn = set()
         self.biddersThisTurn.add(whoMadeBid)
         self.prevBid = howMuch
     
@@ -220,7 +225,6 @@ class CompetitorInstance():
                     if ourBot < self.thisIndex:
                         shouldBid = False
 
-        self.biddersThisTurn = set()
         if shouldBid:
             self.engine.makeBid(our_bid)
         #run only on first bid to identify bots
@@ -236,4 +240,6 @@ class CompetitorInstance():
         self.engine.reportTeams(self.getOurBots() , self.getCompetitorBots(), self.known_bots)
         self.engine.print(f"[{self.thisIndex}] Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {self.known_bots}")
         self.engine.print(f"[{self.knowsValue}] = {self.value} , {self.givenValue}")
+        self.engine.print(f"Order: {self.bidOrder}")
+        self.auctionNumber += 1
         pass
