@@ -229,13 +229,14 @@ class CompetitorInstance():
 
         shouldBid = True
 
-        if self.botStatus[self.thisIndex][1] > 3:
-            if(lastBid > self.value):
-                return
+        if self.botStatus[self.thisIndex][1] >= 3:
             for ourBot in self.getOurBots():
                 if ourBot in self.biddersThisTurn:
-                    if ourBot > self.thisIndex:
+                    if ourBot < self.thisIndex:
                         shouldBid = False
+
+        if(our_bid > self.value):
+                shouldBid = False
 
         if shouldBid:
             self.engine.makeBid(our_bid)
@@ -249,6 +250,15 @@ class CompetitorInstance():
         # Now is the time to report team members, or do any cleanup.
         self.engine.print(f"Auction Ended")
         #self.addRemainingCompetitors()
+        if len(self.getCompetitorBots()) >= 2:
+            getRandomCompetitor = self.getCompetitorBots()
+            getListIndex = self.engine.random.randint(0, len(getRandomCompetitor))
+        
+            self.known_bots.append(getRandomCompetitor[getListIndex])
+            getRandomCompetitor.remove(getRandomCompetitor[getListIndex])
+        
+            getListIndex = self.engine.random.randint(0, len(getRandomCompetitor))
+            self.known_bots.append(getRandomCompetitor[getListIndex])
         self.engine.reportTeams(self.getOurBots() , self.getCompetitorBots(), self.known_bots)
         self.engine.print(f"[{self.thisIndex}] Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {self.known_bots}")
         self.engine.print(f"[{self.knowsValue}] = {self.value} , {self.givenValue}")
