@@ -10,11 +10,12 @@ availableImports = [
     ["random","random"],
     ["math","math"],
     ["time","time"],
+#    ["decimal","decimal"],
 #    ["scipy.stats","stats"]
 ]
 
 log_file_cap=1000*1000 # 1kb max log file size
-functionExecutionTime = 0.05
+functionExecutionTime = 0.07
 
 normalX = list(map(lambda x: x/50-1, range(0,100)))
 normalY = list(map(lambda x: (math.e **(-x**2/2))/math.sqrt(2*math.pi), normalX))
@@ -89,7 +90,7 @@ class GameEngine():
             "penaltyMax": meanTrueValue+stdDevValue*3,
             "auctionsCount":5
         }
-        if random.random()<0:
+        if random.random()<1:
             self.gameParameters["phase"]="phase_2"
         else:
             self.gameParameters["phase"]="phase_1"
@@ -173,7 +174,9 @@ class GameEngine():
                 self.teams[t]["toSayNV"] = -1
                 if self.gameParameters["phase"] == "phase_2":
                     self.teams[t]["toSayNV"] = self.trueValue
-                    self.teams[t]["toSayTV"] = makeTrueValue(self.gameParameters["meanTrueValue"],self.gameParameters["stddevTrueValue"])
+                    self.teams[t]["toSayTV"]=self.teams[t]["toSayNV"]
+                    while self.teams[t]["toSayTV"]==self.teams[t]["toSayNV"]:
+                        self.teams[t]["toSayTV"] = makeTrueValue(self.gameParameters["meanTrueValue"],self.gameParameters["stddevTrueValue"]) 
 
             for i, c in enumerate(self.competitors):
                 initialised = False
@@ -218,14 +221,15 @@ class GameEngine():
             # Finishing the round
             self.nPassed=-1
             teamindex = self.competitors[self.lastBidPlayer]["team"]
-            scoreLog = f"s:{self.lastBidPlayer}:{self.trueValue - self.currentBid - (self.gameParameters['knowledgePenalty'] if self.competitors[self.lastBidPlayer]['knowsTrue'] else 0)}|"
             self.internalPrint("engine","engine","Auction {}: Team {} copped it at a price of {}; true value was {}".format(
                 self.auctionNumber, teamindex if teamindex is not None else "[NPC Random]", self.currentBid, self.trueValue))
+            bidScore = 0
             if teamindex is not None:
-                self.teams[teamindex]["score"] = self.teams[teamindex]["score"] + \
-                    self.trueValue - self.currentBid - \
-                    (self.gameParameters["knowledgePenalty"]
-                     if self.competitors[self.lastBidPlayer]["knowsTrue"] else 0)
+                bidScore = self.trueValue - self.currentBid
+                if (self.competitors[self.lastBidPlayer]["knowsTrue"] and self.gameParameters["phase"]=="phase_1") or ((not self.competitors[self.lastBidPlayer]["knowsTrue"]) and self.gameParameters["phase"]=="phase_2"):
+                    bidScore-= self.gameParameters["knowledgePenalty"] 
+                self.teams[teamindex]["score"] = self.teams[teamindex]["score"] + bidScore
+            scoreLog = f"s:{self.lastBidPlayer}:{bidScore}|"
             for t in self.teams:
                 self.teams[t]["protoReportScore"]=0
                 self.teams[t]["whoReportedBest"]=-1
@@ -233,19 +237,19 @@ class GameEngine():
                 self.currentBidPlayer = i
                 self.callWithTimeout(c["team"],"onAuctionEnd",c["instance"].onAuctionEnd,functionExecutionTime)
             statusLog = "S"
-            bugHelpScores={
-                "OrgesUnited":10,
-                "TheLarpers":5,
-                "anon":10,
-                "PEPERINO":5,
-                "x_axis": 10
-            }
+            #bugHelpScores={
+            #    "OrgesUnited":10,
+            #    "TheLarpers":5,
+            #    "anon":10,
+            #    "PEPERINO":5,
+            #    "x_axis": 10
+            #}
             for t in self.teams:
                 self.teams[t]["score"] += self.teams[t]["protoReportScore"]
-                if True:
-                    if t in bugHelpScores:
-                        self.teams[t]["score"]+=bugHelpScores[t]
-                        scoreLog += f"B:{t}:{bugHelpScores[t]}|"
+                #if True:
+                #    if t in bugHelpScores:
+                #        self.teams[t]["score"]+=bugHelpScores[t]
+                #        scoreLog += f"B:{t}:{bugHelpScores[t]}|"
                 scoreLog += f"R:{self.teams[t]['whoReportedBest']}:{self.teams[t]['protoReportScore']}|"
                 statusLog+= f":{self.teams[t]['score']}"
 
@@ -379,7 +383,7 @@ class GameEngine():
         if type(newIndex)!=int:
             self.internalPrint("error",self.currentPrintingPlayer,f"Bad swap attempt! Cannot swap to {newIndex}.")
             return
-        if newIndex<0 or newIndex>self.gameParameters["numPlayers"]:
+        if newIndex<0 or newIndex>=self.gameParameters["numPlayers"]:
             self.internalPrint("error",self.currentPrintingPlayer,f"Bad swap attempt! Cannot swap to {newIndex}.")
             return
         if self.nPassed!=-1:

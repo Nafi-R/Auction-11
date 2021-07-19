@@ -25,7 +25,7 @@ class CompetitorInstance():
         self.numPlayers = self.gameParameters["numPlayers"]
         self.thisIndex = index
         self.givenValue = trueValue
-        self.value = trueValue if trueValue != -1 else self.gameParameters["meanTrueValue"]
+        self.value = trueValue
         self.knowsValue = True if trueValue != -1 else False
         # index : [status, bidCount]
         self.botStatus = {}
@@ -86,9 +86,17 @@ class CompetitorInstance():
         #Third Turn (get the true value and tell our other bots)
         elif self.botStatus[index][1] == 3:
                 if self.botStatus[index][0] == "Own":
-                    if index in self.known_bots:
-                        bid_diff = howMuch - self.prevBid
-                        self.value = bid_diff**2
+                    if self.phase == "phase_1":
+                        if index in self.known_bots:
+                            bid_diff = howMuch - self.prevBid
+                            self.value = bid_diff**2
+                    else:
+                        if len(self.known_bots) >= 2:
+                            self.known_bots = [self.thisIndex]
+                        if index not in self.known_bots:
+                            bid_diff = howMuch - self.prevBid
+                            self.value = bid_diff**2
+
         #Every other Turn
         else:
             if self.botStatus[index][0] == "NPC":
@@ -205,7 +213,10 @@ class CompetitorInstance():
             else:
                 our_bid = self.math_func2(lastBid, self.value)
         elif self.botStatus[self.thisIndex][1] == 2:
-            our_bid = self.math_func3(lastBid, self.value) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
+            if self.knowsValue:
+                our_bid = self.math_func3(lastBid, self.value) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
+            else: 
+                our_bid = lastBid + self.minbid + self.engine.random.randint(0,10)
         else:
             our_bid = lastBid + self.minbid + self.engine.random.randint(0,10)
 
@@ -214,12 +225,13 @@ class CompetitorInstance():
         # reset our biddersThisTurn list
         # = set()
 
-        if(lastBid > self.value):
-                return
+        
 
         shouldBid = True
 
         if self.botStatus[self.thisIndex][1] > 3:
+            if(lastBid > self.value):
+                return
             for ourBot in self.getOurBots():
                 if ourBot in self.biddersThisTurn:
                     if ourBot > self.thisIndex:
