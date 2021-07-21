@@ -30,13 +30,13 @@ class CompetitorInstance():
         # index : [status, bidCount]
         self.botStatus = {}
         for i in range(0, self.numPlayers):
-            self.botStatus[i] = ["NPC"]
+            self.botStatus[i] = "NPC"
         self.botBidCount = {}
         for i in range(0, self.numPlayers):
-            self.botBidCount[i] = [0]
+            self.botBidCount[i] = 0
         self.knowledgeStatus = {}
         for i in range(0, self.numPlayers):
-            self.knowledgeStatus[i] = [True]
+            self.knowledgeStatus[i] = True
         self.totalTurns = 0
         self.our_bots = []
         self.other_bots = []
@@ -64,7 +64,7 @@ class CompetitorInstance():
             return False
 
     def onBidMade(self, whoMadeBid, howMuch):
-        self.botStatus[whoMadeBid][1] += 1
+        self.botBidCount[whoMadeBid] += 1
         self.placeBot(whoMadeBid, howMuch)
         if whoMadeBid == self.firstBidder or whoMadeBid in self.biddersThisTurn:
             self.biddersThisTurn = set()
@@ -116,14 +116,14 @@ class CompetitorInstance():
     def getOurBots(self) -> list:
         output = []
         for i in self.botStatus.keys():
-            if self.botStatus[i][0] == "Own":
+            if self.botStatus[i] == "Own":
                 output.append(i)
         return output
 
     def getCompetitorBots(self) -> list:
         output = []
         for i in self.botStatus.keys():
-            if self.botStatus[i][0] == "Competitor":
+            if self.botStatus[i] == "Competitor":
                 output.append(i)
         return output
     
@@ -169,9 +169,9 @@ class CompetitorInstance():
         stdv = self.gameParameters["stddevTrueValue"]
         self.totalTurns += 1     
 
-        if self.botStatus[self.thisIndex][1] == 0:  
+        if self.botBidCount[self.thisIndex] == 0:  
             our_bid = self.math_func1(lastBid, self.thisIndex) # Finds our own bots [0,1,2]
-        elif self.botStatus[self.thisIndex][1] == 1:
+        elif self.botBidCount[self.thisIndex]== 1:
             if(self.phase == "phase_1"):
                 if self.knowsValue:
                     our_bid = self.math_func2(lastBid, self.givenValue) # Finds true/fake value [0]
@@ -179,7 +179,7 @@ class CompetitorInstance():
                     our_bid = self.math_func2(lastBid, -1)
             else:
                 our_bid = self.math_func2(lastBid, self.value)
-        elif self.botStatus[self.thisIndex][1] == 2:
+        elif self.botBidCount[self.thisIndex] == 2:
             if self.knowsValue:
                 our_bid = self.math_func3(lastBid, self.value) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
             else: 
@@ -189,7 +189,7 @@ class CompetitorInstance():
 
         shouldBid = True
 
-        if self.botStatus[self.thisIndex][1] >= 3:
+        if self.botBidCount[self.thisIndex] >= 3:
             for ourBot in self.getOurBots():
                 if ourBot in self.biddersThisTurn:
                     if ourBot < self.thisIndex:
@@ -234,16 +234,17 @@ class CompetitorInstance():
         #         filteredList.append(comp)
 
         competitors = self.getCompetitorBots()  
-        randInt = self.engine.random.randomint(0, len(competitors))
-        randInt2 = self.engine.random.randomint(0, len(competitors))
-        while(randInt == randInt2):
-            randInt2 = self.engine.random.randomint(0, len(competitors))
-        
-        return [competitors[randInt], competitors[randInt2]]
+        output = []
+        if len(competitors) >= 2:
+            randInt = self.engine.random.randint(0, len(competitors))
+            randInt2 = self.engine.random.randint(0, len(competitors))
+            while(randInt == randInt2):
+                randInt2 = self.engine.random.randint(0, len(competitors))
+            self.engine.print(f"Rands:{randInt}, {randInt2} Length: {len(competitors)}")
+            output.append(competitors[randInt])
+            output.append(competitors[randInt2])
 
-
-        
-
+        return output
 
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
