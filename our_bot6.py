@@ -205,27 +205,26 @@ class CompetitorInstance():
         #if bot makes bid over the true value -> fake bot
         
         #if ratio of total turns < closer to true value -> bot knows true value
+       
+
+    def findCompetitorBots(self):
         if self.totalTurns < 4:
             return
-        
         for index in self.botStatus.keys():
             if self.botStatus[index][0] == "NPC":
                 ratio = self.botStatus[index][1] / self.totalTurns
                 if ratio >= 0.64 or ratio <= 0.04:
                     self.botStatus[index][0] = "Competitor"
-        
-
 
 
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
         self.engine.print(f"Auction Ended")
         #self.addRemainingCompetitors()
-
         for index in self.botStatus.keys():
             ratio = self.botStatus[index][1] / self.totalTurns
             self.engine.print(f"Ratio {ratio} for bot at index {index} [{self.botStatus[index][0]}] for {self.totalTurns} turns")
-        
+        self.findCompetitorBots()
         self.engine.reportTeams(self.getOurBots() , self.getCompetitorBots(), self.known_bots)
         self.engine.print(f"[{self.thisIndex}] Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {self.known_bots}")
         self.engine.print(f"[{self.knowsValue}] = {self.value} , {self.givenValue}")
