@@ -236,10 +236,10 @@ class CompetitorInstance():
         competitors = self.getCompetitorBots()  
         output = []
         if len(competitors) >= 2:
-            randInt = self.engine.random.randint(0, len(competitors))
-            randInt2 = self.engine.random.randint(0, len(competitors))
+            randInt = self.engine.random.randint(0, len(competitors)- 1)
+            randInt2 = self.engine.random.randint(0, len(competitors) - 1)
             while(randInt == randInt2):
-                randInt2 = self.engine.random.randint(0, len(competitors))
+                randInt2 = self.engine.random.randint(0, len(competitors) - 1)
             self.engine.print(f"Rands:{randInt}, {randInt2} Length: {len(competitors)}")
             output.append(competitors[randInt])
             output.append(competitors[randInt2])
