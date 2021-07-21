@@ -205,6 +205,16 @@ class CompetitorInstance():
         #if bot makes bid over the true value -> fake bot
         
         #if ratio of total turns < closer to true value -> bot knows true value
+        if self.totalTurns < 4:
+            return
+        
+        for index in self.botStatus.keys():
+            if self.botStatus[index][0] == "NPC":
+                ratio = self.botStatus[index][1] / self.totalTurns
+                if ratio >= 0.64 or ratio <= 0.04:
+                    self.botStatus[index][0] = "Competitor"
+        
+
 
 
     def onAuctionEnd(self):
