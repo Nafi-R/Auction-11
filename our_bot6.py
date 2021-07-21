@@ -223,7 +223,7 @@ class CompetitorInstance():
                 if ratio >= 0.64 or ratio <= 0.04:
                     self.botStatus[index] = "Competitor"
 
-    def getRandomFakeBot(self) -> list:
+    def addRandomFakeBots(self):
         pass
         #Phase 1 : Report bots that know the true value (i.e bots that don't go over the true value)
         #Phase 2 : Report bots that know the fake value (i.e bots that do go over the true value)
@@ -234,17 +234,16 @@ class CompetitorInstance():
         #         filteredList.append(comp)
 
         competitors = self.getCompetitorBots()  
-        output = []
         if len(competitors) >= 2:
             randInt = self.engine.random.randint(0, len(competitors)- 1)
             randInt2 = self.engine.random.randint(0, len(competitors) - 1)
             while(randInt == randInt2):
                 randInt2 = self.engine.random.randint(0, len(competitors) - 1)
             self.engine.print(f"Rands:{randInt}, {randInt2} Length: {len(competitors)}")
-            output.append(competitors[randInt])
-            output.append(competitors[randInt2])
-
-        return output
+            self.addKnownBot(competitors[randInt])
+            self.engine.print(f"Added to known: {competitors[randInt]}")
+            self.addKnownBot(competitors[randInt2])
+            self.engine.print(f"Added to known: {competitors[randInt2]}")
 
     def onAuctionEnd(self):
         # Now is the time to report team members, or do any cleanup.
@@ -254,11 +253,11 @@ class CompetitorInstance():
             ratio = self.botBidCount[index] / self.totalTurns
             self.engine.print(f"Ratio {ratio} for bot at index {index} [{self.botStatus[index]}] for {self.totalTurns} turns")
         self.findCompetitorBots()
-        self.known_bots.extend(self.getRandomFakeBot())
+        self.addRandomFakeBots()
         self.engine.reportTeams(self.getOurBots() , self.getCompetitorBots(), self.known_bots)
         self.engine.print(f"[{self.thisIndex}] Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {self.known_bots}")
         self.engine.print(f"[{self.knowsValue}] = {self.value} , {self.givenValue}")
-        self.engine.print(f"Order: {self.bidOrder}")
+        self.engine.print(f"Order: {self.bidOrder} , Round: {self.auctionNumber}, First Bidder: {self.firstBidder}")
         self.auctionNumber += 1
         pass
     
