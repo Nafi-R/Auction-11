@@ -30,7 +30,13 @@ class CompetitorInstance():
         # index : [status, bidCount]
         self.botStatus = {}
         for i in range(0, self.numPlayers):
-            self.botStatus[i] = ["NPC", 0]
+            self.botStatus[i] = ["NPC"]
+        self.botBidCount = {}
+        for i in range(0, self.numPlayers):
+            self.botBidCount[i] = [0]
+        self.knowledgeStatus = {}
+        for i in range(0, self.numPlayers):
+            self.knowledgeStatus[i] = [True]
         self.totalTurns = 0
         self.our_bots = []
         self.other_bots = []
@@ -68,25 +74,24 @@ class CompetitorInstance():
     def placeBot(self, index, howMuch):
         #OUTPUT: "Own", "Competitor", "NPC"
         # First Turn (which bots are ours)
-        if self.botStatus[index][1] == 1:
+        if self.botBidCount[index] == 1:
             if self.math_func1(self.prevBid, index) == howMuch:
-                self.botStatus[index][0] = "Own"
+                self.botStatus[index] = "Own"
             elif not self.is_NPC(howMuch):
-                self.botStatus[index][0] = "Competitor"
+                self.botStatus[index] = "Competitor"
         #Second Turn (which of our bots know the true value)
-        elif self.botStatus[index][1] == 2:
+        elif self.botBidCount[index] == 2:
             if self.phase == "phase_1":
-                if self.botStatus[index][0] == "Own":
                     if self.math_func2(self.prevBid, -1) != howMuch:
                         self.addKnownBot(index)
             else:
-                if self.botStatus[index][0] == "Own":
+                if self.botStatus[index] == "Own":
                     if self.math_func2(self.prevBid, self.value) != howMuch:
                         self.addKnownBot(index)
                 pass
         #Third Turn (get the true value and tell our other bots)
-        elif self.botStatus[index][1] == 3:
-                if self.botStatus[index][0] == "Own":
+        elif self.botBidCount[index] == 3:
+                if self.botStatus[index] == "Own":
                     if self.phase == "phase_1":
                         if index in self.known_bots:
                             bid_diff = howMuch - self.prevBid
@@ -100,9 +105,11 @@ class CompetitorInstance():
 
         #Every other Turn
         else:
-            if self.botStatus[index][0] == "NPC":
+            if self.botStatus[index] == "NPC":
+                if howMuch > self.value:
+                    self.knowledgeStatus[index] = False
                 if not self.is_NPC(howMuch):
-                    self.botStatus[index][0] = "Competitor"
+                    self.botStatus[index] = "Competitor"
 
 
 
@@ -211,10 +218,31 @@ class CompetitorInstance():
         if self.totalTurns < 4:
             return
         for index in self.botStatus.keys():
-            if self.botStatus[index][0] == "NPC":
-                ratio = self.botStatus[index][1] / self.totalTurns
+            if self.botStatus[index] == "NPC":
+                ratio = self.botBidCount[index] / self.totalTurns
                 if ratio >= 0.64 or ratio <= 0.04:
-                    self.botStatus[index][0] = "Competitor"
+                    self.botStatus[index] = "Competitor"
+
+    def getRandomFakeBot(self) -> list:
+        pass
+        #Phase 1 : Report bots that know the true value (i.e bots that don't go over the true value)
+        #Phase 2 : Report bots that know the fake value (i.e bots that do go over the true value)
+        #knowLedgeStatus -> Shows whether the bot knows the true value (True), or doesnt (False)
+        # filteredList = []
+        # for comp in competitors:
+        #     if self.knowledgeStatus[comp] == (self.phase == "phase_1"):
+        #         filteredList.append(comp)
+
+        competitors = self.getCompetitorBots()  
+        randInt = self.engine.random.randomint(0, len(competitors))
+        randInt2 = self.engine.random.randomint(0, len(competitors))
+        while(randInt == randInt2):
+            randInt2 = self.engine.random.randomint(0, len(competitors))
+        
+        return [competitors[randInt], competitors[randInt2]]
+
+
+        
 
 
     def onAuctionEnd(self):
@@ -222,9 +250,10 @@ class CompetitorInstance():
         self.engine.print(f"Auction Ended")
         #self.addRemainingCompetitors()
         for index in self.botStatus.keys():
-            ratio = self.botStatus[index][1] / self.totalTurns
-            self.engine.print(f"Ratio {ratio} for bot at index {index} [{self.botStatus[index][0]}] for {self.totalTurns} turns")
+            ratio = self.botBidCount[index] / self.totalTurns
+            self.engine.print(f"Ratio {ratio} for bot at index {index} [{self.botStatus[index]}] for {self.totalTurns} turns")
         self.findCompetitorBots()
+        self.known_bots.extend(self.getRandomFakeBot())
         self.engine.reportTeams(self.getOurBots() , self.getCompetitorBots(), self.known_bots)
         self.engine.print(f"[{self.thisIndex}] Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {self.known_bots}")
         self.engine.print(f"[{self.knowsValue}] = {self.value} , {self.givenValue}")
