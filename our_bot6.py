@@ -197,8 +197,9 @@ class CompetitorInstance():
                     if ourBot != self.thisIndex:
                         shouldBid = False
 
-        if(our_bid > self.value):
-                shouldBid = False
+        if self.value != -1:
+            if(our_bid > self.value):
+                    shouldBid = False
 
         if shouldBid:
             self.engine.makeBid(our_bid)
