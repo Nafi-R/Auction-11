@@ -224,7 +224,7 @@ class CompetitorInstance():
 
         for index in self.botStatus.keys():
             ratio = self.botStatus[index][1] / self.totalTurns
-            self.engine.print(f"Ratio {ratio} for bot at index {index}")
+            self.engine.print(f"Ratio {ratio} for bot at index {index} [{self.botStatus[index][0]}] for {self.totalTurns} turns")
         
         self.engine.reportTeams(self.getOurBots() , self.getCompetitorBots(), self.known_bots)
         self.engine.print(f"[{self.thisIndex}] Our bots are {self.getOurBots()} and enemy bots are {self.getCompetitorBots()} , Known: {self.known_bots}")
