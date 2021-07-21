@@ -82,6 +82,7 @@ class CompetitorInstance():
         #Second Turn (which of our bots know the true value)
         elif self.botBidCount[index] == 2:
             if self.phase == "phase_1":
+                if self.botStatus[index] == "Own":
                     if self.math_func2(self.prevBid, -1) != howMuch:
                         self.addKnownBot(index)
             else:
@@ -130,6 +131,7 @@ class CompetitorInstance():
 
     def addKnownBot(self, index):
         if index not in self.known_bots:
+            self.engine.print(f"Added to known: {index}")
             self.known_bots.append(index)
 
 
