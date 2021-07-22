@@ -38,21 +38,10 @@ class CompetitorInstance():
         for i in range(0, self.numPlayers):
             self.knowledgeStatus[i] = True
         self.totalTurns = 0
-        self.our_bots = []
-        self.other_bots = []
-        self.competitor_bots = []
         self.known_bots = []
-        self.has_made_first_bid = []
-        self.biddersThisTurn = set()
         self.firstBidder = (self.bidOrder[self.auctionNumber] + 1)%self.numPlayers
-        self.our_lastBid = 0
         self.prevBid = 1
-        self.should_bid = True
-        self.hasBid = False
-        self.hasSecondBid = False
-        self.bid_diff = {}
-        for i in range(0,self.gameParameters["numPlayers"]):
-            self.bid_diff[i] = set()
+        self.prevBidder = 0
 
 
     def is_NPC(self, currentBid) -> bool:
@@ -66,10 +55,8 @@ class CompetitorInstance():
     def onBidMade(self, whoMadeBid, howMuch):
         self.botBidCount[whoMadeBid] += 1
         self.placeBot(whoMadeBid, howMuch)
-        if whoMadeBid == self.firstBidder or whoMadeBid in self.biddersThisTurn:
-            self.biddersThisTurn = set()
-        self.biddersThisTurn.add(whoMadeBid)
         self.prevBid = howMuch
+        self.prevBidder = whoMadeBid
     
     def placeBot(self, index, howMuch):
         #OUTPUT: "Own", "Competitor", "NPC"
@@ -153,18 +140,6 @@ class CompetitorInstance():
         return bid
 
 
-    def normal_func(self,lastBid, mean, stdv) -> float:
-        e = self.engine.math.e
-        pi = self.engine.math.pi
-
-        exp = -(lastBid - mean)*(lastBid - mean)/(2*stdv*stdv)
-        ans = 1/(stdv*(self.engine.math.sqrt(2*pi))) * self.engine.math.pow(e,exp)
-        return ans
-
-    def get_probability(self,lastBid, mean, stdv) -> float:
-        return 1 - 0.75*self.normal_func(lastBid, mean, stdv)/self.normal_func(mean, mean,stdv)
-
-
     def onMyTurn(self,lastBid):
         # lastBid is the last bid that was made
         mean = self.gameParameters["meanTrueValue"]
@@ -172,37 +147,27 @@ class CompetitorInstance():
         self.totalTurns += 1     
 
         if self.botBidCount[self.thisIndex] == 0:  
-            our_bid = self.math_func1(lastBid, self.thisIndex) # Finds our own bots [0,1,2]
+            self.engine.makeBid(self.math_func1(lastBid, self.thisIndex)) # Finds our own bots [0,1,2]
         elif self.botBidCount[self.thisIndex]== 1:
             if(self.phase == "phase_1"):
                 if self.knowsValue:
-                    our_bid = self.math_func2(lastBid, self.givenValue) # Finds true/fake value [0]
+                    self.engine.makeBid(self.math_func2(lastBid, self.givenValue)) # Finds true/fake value [0]
                 else: 
-                    our_bid = self.math_func2(lastBid, -1)
+                    self.engine.makeBid(self.math_func2(lastBid, -1))
             else:
-                our_bid = self.math_func2(lastBid, self.value)
+                self.engine.makeBid(self.math_func2(lastBid, self.value))
         elif self.botBidCount[self.thisIndex] == 2:
             if self.knowsValue:
-                our_bid = self.math_func3(lastBid, self.value) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
+                self.engine.makeBid(self.math_func3(lastBid, self.value)) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
             else: 
-                our_bid = lastBid + self.minbid
+                self.engine.makeBid(lastBid + self.minbid)
         else:
-            our_bid = lastBid + self.minbid
+          	if self.botStatus[self.prevBidder] != "Own":
+                    our_bid = lastBid + self.minbid
+                    if our_bid < self.value:
+                        self.engine.makeBid(our_bid)
 
-        shouldBid = True
-
-        if self.botBidCount[self.thisIndex] >= 3:
-            for ourBot in self.getOurBots():
-                if ourBot in self.biddersThisTurn:
-                    if ourBot != self.thisIndex:
-                        shouldBid = False
-
-        if self.value != -1:
-            if(our_bid > self.value):
-                    shouldBid = False
-
-        if shouldBid:
-            self.engine.makeBid(our_bid)
+            
         #run only on first bid to identify bots
         # probability = self.get_probability(our_bid, self.value, stdv)
         
