@@ -146,26 +146,31 @@ class CompetitorInstance():
         stdv = self.gameParameters["stddevTrueValue"]
         self.totalTurns += 1     
 
-        if self.botBidCount[self.thisIndex] == 0:  
+        if self.botBidCount[self.thisIndex] == 0:
+          if lastBid < mean - stdv:
             self.engine.makeBid(self.math_func1(lastBid, self.thisIndex)) # Finds our own bots [0,1,2]
         elif self.botBidCount[self.thisIndex]== 1:
-            if(self.phase == "phase_1"):
-                if self.knowsValue:
-                    self.engine.makeBid(self.math_func2(lastBid, self.givenValue)) # Finds true/fake value [0]
-                else: 
-                    self.engine.makeBid(self.math_func2(lastBid, -1))
-            else:
-                self.engine.makeBid(self.math_func2(lastBid, self.value))
+          if lastBid < mean - stdv:
+              if(self.phase == "phase_1"):
+                  if self.knowsValue:
+                      self.engine.makeBid(self.math_func2(lastBid, self.givenValue)) # Finds true/fake value [0]
+                  else: 
+                      self.engine.makeBid(self.math_func2(lastBid, -1))
+              else:
+                  self.engine.makeBid(self.math_func2(lastBid, self.value))
         elif self.botBidCount[self.thisIndex] == 2:
-            if self.knowsValue:
-                self.engine.makeBid(self.math_func3(lastBid, self.value)) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
-            else: 
-                self.engine.makeBid(lastBid + self.minbid)
+          if lastBid < mean - stdv:
+              if self.knowsValue:
+                  self.engine.makeBid(self.math_func3(lastBid, self.value)) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
+              else: 
+                  self.engine.makeBid(lastBid + self.minbid)
         else:
           	if self.botStatus[self.prevBidder] != "Own":
                     our_bid = lastBid + self.minbid
                     if our_bid < self.value:
                         self.engine.makeBid(our_bid)
+            
+
             
 
             
