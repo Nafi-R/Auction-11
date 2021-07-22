@@ -83,13 +83,13 @@ class CompetitorInstance():
                     if self.phase == "phase_1":
                         if index in self.known_bots:
                             bid_diff = howMuch - self.prevBid
-                            self.value = bid_diff**2
+                            self.value = self.engine.math.pow((bid_diff + bid_diff + 1)/2,1.45)
                     else:
                         if len(self.known_bots) >= 2:
                             self.known_bots = [self.thisIndex]
                         if index not in self.known_bots:
                             bid_diff = howMuch - self.prevBid
-                            self.value = bid_diff**2
+                            self.value = self.engine.math.pow((bid_diff + bid_diff + 1)/2,1.45)
 
         #Every other Turn
         else:
@@ -136,7 +136,7 @@ class CompetitorInstance():
 
     #Creates signal for other bots to find the true value (bid increase = sqrt(trueValue))
     def math_func3(self,lastBid, value) -> int:
-        bid = lastBid+ self.engine.math.floor(self.engine.math.sqrt(value))
+        bid = lastBid+ self.engine.math.floor(self.engine.math.pow(value,1/1.45))
         return bid
 
 
@@ -166,7 +166,9 @@ class CompetitorInstance():
                     our_bid = lastBid + self.minbid
                     if our_bid < self.value:
                         self.engine.makeBid(our_bid)
+            
 
+            
             
         #run only on first bid to identify bots
         # probability = self.get_probability(our_bid, self.value, stdv)
