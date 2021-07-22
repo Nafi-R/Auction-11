@@ -87,6 +87,7 @@ class CompetitorInstance():
                     else:
                         if len(self.known_bots) >= 2:
                             self.known_bots = [self.thisIndex]
+                            self.knowsValue = False
                         if index not in self.known_bots:
                             bid_diff = howMuch - self.prevBid
                             self.value = self.engine.math.pow((bid_diff + bid_diff + 1)/2,1.45)
@@ -167,7 +168,7 @@ class CompetitorInstance():
         else:
           	if self.botStatus[self.prevBidder] != "Own":
                     our_bid = lastBid + self.minbid
-                    if our_bid < self.value:
+                    if our_bid < self.value and self.knowsValue == False:
                         self.engine.makeBid(our_bid)
             
 
