@@ -213,7 +213,7 @@ class CompetitorInstance():
     def findCompetitorBots(self):
 
             for index in self.botStatus.keys():
-                if self.botStatus[index] == "NPC":
+                if self.botStatus[index] != "Own":
                     ratio = self.botBidCount[index] / self.totalTurns
                     if ratio > 0:
                         if ratio >= 0.64 or ratio <= 0.04:
