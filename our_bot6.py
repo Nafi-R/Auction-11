@@ -275,9 +275,9 @@ class CompetitorInstance():
         elif self.thisIndex == max(ourBots):
             #Add 1 bot (bot with max/min prob of bidding)
             if self.phase == "phase_1":
-                self.addKnownBot(max(self.bidRatios, key=(lambda x: self.bidRatios[x])))
-            else:
                 self.addKnownBot(min(self.bidRatios, key=(lambda x: self.bidRatios[x])))
+            else:
+                self.addKnownBot(max(self.bidRatios, key=(lambda x: self.bidRatios[x])))
             
 
     def onAuctionEnd(self):
