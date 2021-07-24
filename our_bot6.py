@@ -210,8 +210,9 @@ class CompetitorInstance():
             for index in self.botStatus.keys():
                 if self.botStatus[index] == "NPC":
                     ratio = self.botBidCount[index] / self.totalTurns
-                    if ratio >= 0.64 or ratio <= 0.04:
-                        self.botStatus[index] = "Competitor"
+                    if ratio > 0:
+                        if ratio >= 0.64 or ratio <= 0.04:
+                            self.botStatus[index] = "Competitor"
 
             for index in range(0, self.numPlayers):
                 countLow = self.bidRange["Low"][0].count(index)
