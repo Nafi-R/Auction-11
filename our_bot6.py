@@ -219,6 +219,8 @@ class CompetitorInstance():
                             self.botStatus[index] = "Competitor"
 
             for index in range(0, self.numPlayers):
+                if self.botStatus[index] == "Own":
+                     return
                 countLow = self.bidRange["Low"][0].count(index)
                 turnLow = self.bidRange["Low"][1]
                 ratioLow = countLow/turnLow
@@ -231,12 +233,10 @@ class CompetitorInstance():
 
                 avg = (ratioLow + ratioMid + ratioHigh)/3
                 self.engine.print(f"Bot [{index}] ratios are: {ratioLow},{ratioMid},{ratioHigh}, avg: {avg}")
-                if self.botStatus[index] != "Own":
-                    if avg > 0:
-                        if ratioLow >= 0.64:
-                            if ratioMid >= 0.16:
-                                if ratioHigh >= 0.04:
-                                        self.botStatus[index] = "Competitor"
+                threshold = (self.engine.math.ceil(0.28*self.totalTurns)/self.totalTurns)
+                if avg > 0:
+                    if avg > threshold:
+                        self.botStatus[index] = "Competitor"
 
     def addRandomFakeBots(self, competitors):
         pass
