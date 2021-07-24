@@ -90,7 +90,7 @@ class GameEngine():
             "penaltyMax": meanTrueValue+stdDevValue*3,
             "auctionsCount":5
         }
-        if random.random()<1:
+        if random.random()<0:
             self.gameParameters["phase"]="phase_2"
         else:
             self.gameParameters["phase"]="phase_1"
@@ -433,11 +433,11 @@ class NPCRandomBot():
         pass
 
     def onMyTurn(self, lastBid):
-        pr=32/50
+        pr=32/50 #0.64
         if lastBid>self.mean/4:
             pr=16/100
         if lastBid>self.mean*3/4:
-            pr=2/50
+            pr=2/50 #0.04
         if random.random() < pr:
             if not self.ph2:
                 self.engine.makeBid(math.floor(

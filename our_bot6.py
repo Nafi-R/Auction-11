@@ -43,6 +43,7 @@ class CompetitorInstance():
         self.firstBidder = (self.bidOrder[self.auctionNumber] + 1)%self.numPlayers
         self.prevBid = 1
         self.prevBidder = 0
+        self.bidRatios = {}
 
 
     def is_NPC(self, currentBid) -> bool:
@@ -216,11 +217,12 @@ class CompetitorInstance():
                     ratio = self.botBidCount[index] / self.totalTurns
                     if ratio > 0:
                         if ratio >= 0.64 or ratio <= 0.04:
+                            self.bidRatios[index] = ratio
                             self.botStatus[index] = "Competitor"
 
             for index in range(0, self.numPlayers):
                 if self.botStatus[index] == "Own":
-                     return
+                    continue
                 countLow = self.bidRange["Low"][0].count(index)
                 turnLow = self.bidRange["Low"][1]
                 ratioLow = countLow/turnLow
@@ -238,33 +240,44 @@ class CompetitorInstance():
                     if avg > threshold:
                         self.botStatus[index] = "Competitor"
 
-    def addRandomFakeBots(self, competitors):
+    def addRandomFakeBots(self, ourBots, competitors):
         pass
-        #Phase 1 : Report bots that know the true value (i.e bots that don't go over the true value)
-        #Phase 2 : Report bots that know the fake value (i.e bots that do go over the true value)
-        #knowLedgeStatus -> Shows whether the bot knows the true value (True), or doesnt (False)
-        # filteredList = []
-        # for comp in competitors:
-        #     if self.knowledgeStatus[comp] == (self.phase == "phase_1"):
-        #         filteredList.append(comp)
+        '''
+        Fake/True bot -> Report 2 rand bots
+        Other bot1 -> Report our fake and 1 rand bot (with max/min prob depending on phase)
+        Other bot2 -> Only report our bot
+        '''
         playerNum = len(competitors)
         
         if playerNum <= 0:
             return
 
+        #If we only have 1 competitor, only add it to known list for 1 of our bots (bot with max index)
         if(playerNum == 1):
-            self.addKnownBot(competitors[0])
-            return
+            if self.thisIndex == max(ourBots):
+                self.addKnownBot(competitors[0])
+                return
 
-        randInt = self.engine.random.randint(0, playerNum - 1)
-        randInt2 = self.engine.random.randint(0, playerNum - 1)
-        if(randInt == randInt2):
-            randInt2 = self.engine.random.randint(0, playerNum - 1)
-        if len(competitors) > 3:
-            self.addKnownBot(competitors[randInt])
-            self.addKnownBot(competitors[randInt2])
-        elif len(competitors) >1:
-            self.addKnownBot(competitors[randInt])
+        #Remove known from ourBot list
+        for ourBot in ourBots:
+            for known in self.known_bots:
+                if ourBot == known:
+                    ourBots.remove(known)
+
+        #Phase 1 -> Bot that know the value (True)
+        #Phase 2 -> Bot that doesn't the value (False)
+        if(self.knowsValue == (self.phase == "phase_1")):
+            #Add two random bots to known list
+            if playerNum >= 2:
+                self.engine.random.shuffle(competitors)
+                self.addKnownBot(competitors.pop())
+                self.addKnownBot(competitors.pop())
+        elif self.thisIndex == max(ourBots):
+            #Add 1 bot (bot with max/min prob of bidding)
+            if self.phase == "phase_1":
+                self.addKnownBot(max(self.bidRatios, key=(lambda x: self.bidRatios[x])))
+            else:
+                self.addKnownBot(min(self.bidRatios, key=(lambda x: self.bidRatios[x])))
             
 
     def onAuctionEnd(self):
@@ -274,7 +287,7 @@ class CompetitorInstance():
         self.findCompetitorBots()
         ourBots = self.getOurBots()
         compBots = self.getCompetitorBots()
-        self.addRandomFakeBots(compBots)
+        self.addRandomFakeBots(ourBots.copy(),compBots.copy())
         for index in self.botStatus.keys():
             ratio = self.botBidCount[index] / self.totalTurns
             self.engine.print(f"Ratio {ratio} for bot at index {index} [{self.botStatus[index]}] for {self.totalTurns} turns")
