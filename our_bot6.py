@@ -108,6 +108,10 @@ class CompetitorInstance():
                     self.knowledgeStatus[index] = False
                 if not self.is_NPC(howMuch):
                     self.botStatus[index] = "Competitor"
+            elif self.botStatus[index] == "Own":
+                bid_diff = howMuch - self.prevBid
+                if bid_diff != self.minbid:
+                    self.botStatus[index] = "NPC"
 
 
 
