@@ -37,6 +37,7 @@ class CompetitorInstance():
         self.knowledgeStatus = {}
         for i in range(0, self.numPlayers):
             self.knowledgeStatus[i] = True
+        self.bidRange = {"Low": [[],1], "Mid": [[],1], "High": [[],1]}
         self.totalTurns = 1
         self.known_bots = []
         self.firstBidder = (self.bidOrder[self.auctionNumber] + 1)%self.numPlayers
@@ -55,9 +56,15 @@ class CompetitorInstance():
     def onBidMade(self, whoMadeBid, howMuch):
         self.botBidCount[whoMadeBid] += 1
         self.placeBot(whoMadeBid, howMuch)
-        self.engine.print(f"[{self.botStatus[whoMadeBid]}] [{whoMadeBid}] made a bid of {howMuch} with bid difference of: {howMuch - self.prevBid}")
+        #self.engine.print(f"[{self.botStatus[whoMadeBid]}] [{whoMadeBid}] made a bid of {howMuch} with bid difference of: {howMuch - self.prevBid}")
         self.prevBid = howMuch
         self.prevBidder = whoMadeBid
+        if(howMuch < self.mean/4):
+            self.bidRange["Low"][0].append(whoMadeBid)
+        elif howMuch > self.mean/4 and howMuch < self.mean*3/4:
+            self.bidRange["Mid"][0].append(whoMadeBid)
+        elif howMuch > self.mean*3/4:
+            self.bidRange["High"][0].append(whoMadeBid)
         
     
     def placeBot(self, index, howMuch):
@@ -147,7 +154,13 @@ class CompetitorInstance():
         # lastBid is the last bid that was made
         mean = self.gameParameters["meanTrueValue"]
         stdv = self.gameParameters["stddevTrueValue"]
-        self.totalTurns += 1     
+        self.totalTurns += 1
+        if lastBid < mean/4:
+            self.bidRange["Low"][1] += 1
+        elif lastBid > mean/4 and lastBid < mean*3/4:
+            self.bidRange["Mid"][1] += 1
+        elif lastBid > mean*3/4:
+            self.bidRange["High"][1] += 1
 
         if self.botBidCount[self.thisIndex] == 0:
           if lastBid < mean - stdv:
@@ -193,11 +206,30 @@ class CompetitorInstance():
        
 
     def findCompetitorBots(self):
-        for index in self.botStatus.keys():
-            if self.botStatus[index] == "NPC":
-                ratio = self.botBidCount[index] / self.totalTurns
-                if ratio >= 0.64 or ratio <= 0.04:
-                    self.botStatus[index] = "Competitor"
+
+            for index in self.botStatus.keys():
+                if self.botStatus[index] == "NPC":
+                    ratio = self.botBidCount[index] / self.totalTurns
+                    if ratio >= 0.64 or ratio <= 0.04:
+                        self.botStatus[index] = "Competitor"
+
+            for index in range(0, self.numPlayers):
+                countLow = self.bidRange["Low"][0].count(index)
+                turnLow = self.bidRange["Low"][1]
+                ratioLow = countLow/turnLow
+                countMid = self.bidRange["Mid"][0].count(index)
+                turnMid = self.bidRange["Mid"][1]
+                ratioMid = countMid/turnMid
+                countHigh = self.bidRange["High"][0].count(index)
+                turnHigh = self.bidRange["High"][1]
+                ratioHigh = countHigh/turnHigh
+
+                self.engine.print(f"Bot [{index}] ratios are: {ratioLow},{ratioMid},{ratioHigh}")
+                if self.botStatus[index] != "Own":
+                    if ratioLow >= 0.64:
+                        if ratioMid >= 0.16:
+                            if ratioHigh >= 0.04:
+                                    self.botStatus[index] = "Competitor"
 
     def addRandomFakeBots(self, competitors):
         pass
@@ -208,16 +240,19 @@ class CompetitorInstance():
         # for comp in competitors:
         #     if self.knowledgeStatus[comp] == (self.phase == "phase_1"):
         #         filteredList.append(comp)
-        playerNum = len(competitors) - 1
+        playerNum = len(competitors)
         
+        if playerNum <= 0:
+            return
+
         if(playerNum == 1):
             self.addKnownBot(competitors[0])
             return
 
-        randInt = self.engine.random.randint(0, playerNum)
-        randInt2 = self.engine.random.randint(0, playerNum)
+        randInt = self.engine.random.randint(0, playerNum - 1)
+        randInt2 = self.engine.random.randint(0, playerNum - 1)
         if(randInt == randInt2):
-            randInt2 = self.engine.random.randint(0, playerNum)
+            randInt2 = self.engine.random.randint(0, playerNum - 1)
         if len(competitors) > 3:
             self.addKnownBot(competitors[randInt])
             self.addKnownBot(competitors[randInt2])
