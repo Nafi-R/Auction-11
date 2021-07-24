@@ -168,10 +168,10 @@ class CompetitorInstance():
             self.bidRange["High"][1] += 1
 
         if self.botBidCount[self.thisIndex] == 0:
-          if lastBid < mean:
+          if lastBid < mean*0.85:
             self.engine.makeBid(self.math_func1(lastBid, self.thisIndex)) # Finds our own bots [0,1,2]
         elif self.botBidCount[self.thisIndex]== 1:
-          if lastBid < mean:
+          if lastBid < mean*0.85:
               if(self.phase == "phase_1"):
                   if self.knowsValue:
                     self.engine.makeBid(self.math_func2(lastBid, self.givenValue)) # Finds true/fake value [0]
@@ -180,7 +180,7 @@ class CompetitorInstance():
               else:
                   self.engine.makeBid(self.math_func2(lastBid, self.value))
         elif self.botBidCount[self.thisIndex] == 2:
-          if lastBid < mean:
+          if lastBid < mean*0.85:
               if self.knowsValue:
                   self.engine.makeBid(self.math_func3(lastBid, self.value)) # if knows true, create a signal for other bots [0] bid differs = 42 -> true value = 42^2
               else: 
