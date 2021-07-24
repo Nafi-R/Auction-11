@@ -215,6 +215,8 @@ class CompetitorInstance():
             for index in self.botStatus.keys():
                 if self.botStatus[index] != "Own":
                     ratio = self.botBidCount[index] / self.totalTurns
+                    if self.botStatus[index] == "Competitor":
+                        self.bidRatios[index] = ratio
                     if ratio > 0:
                         if ratio >= 0.64 or ratio <= 0.04:
                             self.bidRatios[index] = ratio
