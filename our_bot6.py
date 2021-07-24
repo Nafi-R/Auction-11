@@ -224,12 +224,14 @@ class CompetitorInstance():
                 turnHigh = self.bidRange["High"][1]
                 ratioHigh = countHigh/turnHigh
 
-                self.engine.print(f"Bot [{index}] ratios are: {ratioLow},{ratioMid},{ratioHigh}")
+                avg = (ratioLow + ratioMid + ratioHigh)/3
+                self.engine.print(f"Bot [{index}] ratios are: {ratioLow},{ratioMid},{ratioHigh}, avg: {avg}")
                 if self.botStatus[index] != "Own":
-                    if ratioLow >= 0.64:
-                        if ratioMid >= 0.16:
-                            if ratioHigh >= 0.04:
-                                    self.botStatus[index] = "Competitor"
+                    if avg > 0:
+                        if ratioLow >= 0.64:
+                            if ratioMid >= 0.16:
+                                if ratioHigh >= 0.04:
+                                        self.botStatus[index] = "Competitor"
 
     def addRandomFakeBots(self, competitors):
         pass
