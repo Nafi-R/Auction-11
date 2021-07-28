@@ -190,57 +190,37 @@ class CompetitorInstance():
                     our_bid = lastBid + self.minbid
                     if our_bid < self.value and self.knowsValue == False:
                         self.engine.makeBid(our_bid)
-            
-
-            
-
-            
-            
-        #run only on first bid to identify bots
-        # probability = self.get_probability(our_bid, self.value, stdv)
-        
-        # if(self.engine.random.random() < probability):
-    
-    def isFakeBot(self):
-        pass
-        #if bid difference is the same -> two bots on same team that know true value
-
-        #if bot makes bid over the true value -> fake bot
-        
-        #if ratio of total turns < closer to true value -> bot knows true value
-       
 
     def findCompetitorBots(self):
-
-            for index in self.botStatus.keys():
-                if self.botStatus[index] != "Own":
-                    ratio = self.botBidCount[index] / self.totalTurns
-                    if self.botStatus[index] == "Competitor":
+        for index in self.botStatus.keys():
+            if self.botStatus[index] != "Own":
+                ratio = self.botBidCount[index] / self.totalTurns
+                if self.botStatus[index] == "Competitor":
+                    self.bidRatios[index] = ratio
+                if ratio > 0:
+                    if ratio >= 0.64 or ratio <= 0.04:
                         self.bidRatios[index] = ratio
-                    if ratio > 0:
-                        if ratio >= 0.64 or ratio <= 0.04:
-                            self.bidRatios[index] = ratio
-                            self.botStatus[index] = "Competitor"
-
-            for index in range(0, self.numPlayers):
-                if self.botStatus[index] == "Own":
-                    continue
-                countLow = self.bidRange["Low"][0].count(index)
-                turnLow = self.bidRange["Low"][1]
-                ratioLow = countLow/turnLow
-                countMid = self.bidRange["Mid"][0].count(index)
-                turnMid = self.bidRange["Mid"][1]
-                ratioMid = countMid/turnMid
-                countHigh = self.bidRange["High"][0].count(index)
-                turnHigh = self.bidRange["High"][1]
-                ratioHigh = countHigh/turnHigh
-
-                avg = (ratioLow + ratioMid + ratioHigh)/3
-                self.engine.print(f"Bot [{index}] ratios are: {ratioLow},{ratioMid},{ratioHigh}, avg: {avg}")
-                threshold = (self.engine.math.ceil(0.28*self.totalTurns)/self.totalTurns)
-                if avg > 0:
-                    if ratioLow > 0.64 and ratioMid > 0.16 and ratioHigh > 0.04:
                         self.botStatus[index] = "Competitor"
+
+        for index in range(0, self.numPlayers):
+            if self.botStatus[index] == "Own":
+                continue
+            countLow = self.bidRange["Low"][0].count(index)
+            turnLow = self.bidRange["Low"][1]
+            ratioLow = countLow/turnLow
+            countMid = self.bidRange["Mid"][0].count(index)
+            turnMid = self.bidRange["Mid"][1]
+            ratioMid = countMid/turnMid
+            countHigh = self.bidRange["High"][0].count(index)
+            turnHigh = self.bidRange["High"][1]
+            ratioHigh = countHigh/turnHigh
+
+            avg = (ratioLow + ratioMid + ratioHigh)/3
+            self.engine.print(f"Bot [{index}] ratios are: {ratioLow},{ratioMid},{ratioHigh}, avg: {avg}")
+            threshold = (self.engine.math.ceil(0.28*self.totalTurns)/self.totalTurns)
+            if avg > 0:
+                if ratioLow > 0.64 and ratioMid > 0.16 and ratioHigh > 0.04:
+                    self.botStatus[index] = "Competitor"
 
     def addRandomFakeBots(self, ourBots, competitors):
         pass
