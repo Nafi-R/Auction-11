@@ -6,22 +6,22 @@ class CompetitorInstance():
     def onGameStart(self, engine, gameParameters):
         self.engine=engine
         self.gameParameters=gameParameters
+        self.engine.print(str(gameParameters))
     
     def onAuctionStart(self, index, trueValue):
-        self.thisIndex = index
         pass
 
     def onBidMade(self, whoMadeBid, howMuch):
         pass
 
     def onMyTurn(self,lastBid):
-        if self.engine.random.randint(0,100)<80:
-            self.engine.makeBid(lastBid+20)
+        if self.engine.random.randint(0,100)<20:
+            self.engine.makeBid(lastBid+8)
         pass
 
     def onAuctionEnd(self):
-        self.engine.print(f"==RandomAccuser [{self.thisIndex}]==")
         playerList = list(range(0,self.gameParameters["numPlayers"]))
         reportOwnTeam = random.sample(playerList,5)
+        self.engine.swapTo(self.engine.random.randint(0,self.gameParameters["numPlayers"]))
         self.engine.reportTeams(reportOwnTeam, [], [])
         pass

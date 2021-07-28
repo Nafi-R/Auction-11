@@ -9,6 +9,7 @@ class CompetitorInstance():
         self.engine=engine
     
     def onAuctionStart(self, index, trueValue):
+        self.thisIndex = index
         pass
 
     def onBidMade(self, whoMadeBid, howMuch):
@@ -16,8 +17,9 @@ class CompetitorInstance():
 
     def onMyTurn(self,lastBid):
         if self.engine.random.randint(0,100)<20:
-            self.engine.makeBid(lastBid+11)
+            self.engine.makeBid(lastBid+20)
         pass
 
     def onAuctionEnd(self):
+        self.engine.print(f"==RandomBidder [{self.thisIndex}]==")
         pass
