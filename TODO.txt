@@ -1,0 +1,25 @@
+Nafi: 
+ - Weeding out the competitors that vote the same
+ - Observe competitors that know the true value 
+
+Jackie:
+ - Observe bidding (better bidding range)
+ - Method of identifying our own bots that know the value
+
+
+Phase 1:
+TrueValueReport:
+1. Bots that know the true value use math_func1
+2. Bots that don't know the true value use math_func2
+
+Phase 2:
+FakeValueReport:
+1. Find which bots are ours
+2  Some math fuction uses the value
+3. Which two bots make the same bidding decision.
+4. The bot that doesn't make the same bidding decision, 
+
+
+
+
+
