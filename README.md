@@ -1,7 +1,16 @@
 *Tournament*
+
+[Official Competition details can be found here!](https://www.notion.so/READ-ME-68e95ca047c24c82b834890488e65fc2)
+
 This competition will be a tournament consisting of a number of games. A tournament engine will automatically schedule games involving multiple teams at a time
+
+Final Placement
+
+![alt text](https://i.imgur.com/crS52Ya.png)
+
+Game Details
 - Games
-	- Each game will have exactly 3 competitor teams. Each competitor team submits one copy of code; and their code is run on ~~2≤b≤3~~ exactly 3 **bots**.
+	- Each game will have exactly 3 competitor teams. Each competitor team submits one copy of code; and their code is run on 2≤b≤3 exactly 3 **bots**.
       Each game will also have exactly 12 **bots**, with the remaining non-player bots being filled by ***NPC bots.
         *** ***NPC bots*** behave in a set manner, see below
     - The order of the bots is random and fixed. Each bot's position then serves as its ID
